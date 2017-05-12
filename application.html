@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Application</title>
+
+    <!-- BabylonJS import -->
+    <script src="/babylonjs/babylon.js"></script>
+    <script src="/static/babylon.objFileLoader.min.js"></script>
+    <!-- BabylonJS import end -->
+
+    <!-- JSWorks import -->
+    <script src="/jsworks/jsworks.js"></script>
+    <link rel="stylesheet" href="/jsworks/jsworks.css">
+    <!-- JSWorks import end -->
+
+    <script src="/application.js"></script>
+    <link rel="stylesheet" href="/main.css">
+    <link rel="import" href="/main.html">
+</head>
+<body>
+
+    <app-info>
+        <app-controllers>
+
+            <!-- Define your controllers here -->
+            <!-- <app-controller id="SampleController" view="SampleView"></app-controller> -->
+
+        </app-controllers>
+
+        <app-routes>
+            <app-route id="MenuRoute" page="MenuPage" default></app-route>
+
+            <!-- Define your routes here -->
+            <!-- <app-route id="SampleRoute" controller="SampleController" match="route"></app-route>
+            <!-- App routes can be nested -->
+
+        </app-routes>
+    </app-info>
+
+    <app-main></app-main>
+
+    
+
+</body>
+</html>

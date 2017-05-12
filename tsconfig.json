@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/compiled/",
+        "rootDir": ".",
+        "sourceMap": true,
+        "alwaysStrict": true,
+        "target": "es5",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "lib": [
+            "es2016",
+            "dom"
+        ]
+    },
+    "include": [
+        "./**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "spec",
+        "dist"
+    ]
+}
