@@ -19,5 +19,8 @@
         "node_modules",
         "spec",
         "dist"
-    ]
+    ],
+    "paths": {
+        "babylon": ["../../static/babylon"]
+    }
 }
