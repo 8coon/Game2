@@ -12,6 +12,7 @@ export abstract class AbstractController {
     public onNavigate(args?: object): void {
         if (!Realm) {
             Realm = new RealmClass(this.gameCanvasId);
+            Realm.init();
         }
     }
 
