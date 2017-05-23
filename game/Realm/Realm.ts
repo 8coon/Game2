@@ -4,6 +4,8 @@ import {Camera} from "../Camera/Camera";
 import {ResourceManager, ResourceRetrievalMode} from "../ResourceManager/ResourceManager";
 import {ObjectFactory} from "../ObjectFactory/ObjectFactory";
 import {RealmSky} from "./RealmSky";
+import {RealmState} from "./RealmState";
+import {TestState} from "../States/TestState";
 
 
 export class RealmClass {
@@ -19,6 +21,9 @@ export class RealmClass {
     public fps: number = 0;
     public timeDelta: number = 0;
     public animModifier: number = 0;
+
+    private states: Map<string, RealmState> = new Map<string, RealmState>();
+    public state: RealmState;
 
 
     public static now(): number {
@@ -41,6 +46,7 @@ export class RealmClass {
 
         this.resources.retrieve().then(() => {
             this.loadSky();
+            this.loadStates();
             let oldMillis: number = RealmClass.now();
 
             this.engine.runRenderLoop(() => {
@@ -54,28 +60,40 @@ export class RealmClass {
                 oldMillis = newMillis;
             });
 
+            let i = 0;
             window.setInterval(() => {
-                const step = Math.PI / 10;
-                const alphas = Array.from(<any>(function* () { for (let i = -5; i < 5; i++) yield i; })())
-                        .map(x => <any> x * step);
+                this.changeState(['first', 'second', 'third'][i]);
+                i++;
 
-                this.camera.lookAtDirection(this.randItem(alphas));
-            }, 1000);
+                if (i > 2) {
+                    i = 0;
+                }
+            }, 2000);
 
-            const cubeX1: BABYLON.Mesh = BABYLON.Mesh.CreateBox('cubeX1', 1, this.scene);
-            cubeX1.position = new BABYLON.Vector3(5, 0, 0);
-            cubeX1.material = new BABYLON.StandardMaterial('cubeX1Material', this.scene);
-            cubeX1.renderingGroupId = 1;
-            (<any> cubeX1.material).emissiveColor = new BABYLON.Color3(1.0, 0, 0);
-            (<any> cubeX1.material).diffuseColor = (<any> cubeX1.material).emissiveColor;
-
-            const cubeX2: BABYLON.Mesh = BABYLON.Mesh.CreateBox('cubeX2', 1, this.scene);
-            cubeX2.position = new BABYLON.Vector3(-5, 0, 0);
-            cubeX2.material = new BABYLON.StandardMaterial('cubeX2Material', this.scene);
-            cubeX2.renderingGroupId = 1;
-            (<any> cubeX2.material).emissiveColor = new BABYLON.Color3(0, 1.0, 0);
-            (<any> cubeX2.material).diffuseColor = (<any> cubeX2.material).emissiveColor;
+            window.setInterval(() => {
+                this.camera.vibrate(0.8, 1900);
+            }, 2000);
         });
+    }
+
+
+    public changeState(name: string): void {
+        if (this.state) {
+            this.state.onLeave();
+        }
+
+        this.state = this.getState(name);
+        this.camera.lookAtDirection(this.state.alpha);
+        this.state.onEnter();
+    }
+
+
+    public addState(state: RealmState): void {
+        this.states.set(state.name, state);
+    }
+
+    public getState(name: string): RealmState {
+        return this.states.get(name);
     }
 
 
@@ -97,6 +115,26 @@ export class RealmClass {
         )
     }
 
+    public calculateAnim(initValue: number, oldValue: number, newValue: number, frames: number): number {
+        const delta: number = (newValue - initValue) / frames;
+        const curDelta: number = newValue - oldValue;
+
+        if (Math.abs(curDelta) < Math.abs(delta)) {
+            return newValue;
+        }
+
+        return oldValue + delta;
+    }
+
+    public calculateVectorAnim(initVector: BABYLON.Vector3, oldVector: BABYLON.Vector3, newVector: BABYLON.Vector3,
+            frames: number): BABYLON.Vector3 {
+        return new BABYLON.Vector3(
+            this.calculateAnim(initVector.x, oldVector.x, newVector.x, frames),
+            this.calculateAnim(initVector.y, oldVector.y, newVector.y, frames),
+            this.calculateAnim(initVector.z, oldVector.z, newVector.z, frames),
+        );
+    }
+
     public randItem(array: any[]): any {
         return array[Math.floor(Math.random() * array.length)];
     }
@@ -104,6 +142,13 @@ export class RealmClass {
 
     private loadSky(): void {
         this.sky = new RealmSky('sky', this.scene);
+    }
+
+
+    private loadStates(): void {
+        this.addState(new TestState('first', this.scene));
+        this.addState(new TestState('second', this.scene));
+        this.addState(new TestState('third', this.scene));
     }
 
 }
