@@ -154,7 +154,7 @@ export class Camera extends BABYLON.Mesh {
     }
 
 
-    public vibrate(power: number, duration: number): void {
+    public explosionAnimate(power: number, duration: number): void {
         this.animator.addAnimationAction(ExplosionAnimationAction.create(power, duration));
     }
 

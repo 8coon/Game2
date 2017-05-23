@@ -1,16 +1,19 @@
 import BABYLON from "../../static/babylon";
 import {RealmScene} from "./RealmScene";
 import {Camera} from "../Camera/Camera";
-import {ResourceManager, ResourceRetrievalMode} from "../ResourceManager/ResourceManager";
 import {ObjectFactory} from "../ObjectFactory/ObjectFactory";
 import {RealmSky} from "./RealmSky";
 import {RealmState} from "./RealmState";
 import {TestState} from "../States/TestState";
+import {LoadingScreen} from "../Loader/LoadingScreen";
+import {Loader} from "../Loader/Loader";
+import {StarShip} from "../Models/StarShip";
+import {OfflineGameState} from "../States/OfflineGameState";
 
 
 export class RealmClass {
 
-    public resources: ResourceManager;
+    public meshesLoader: Loader;
     public canvas: HTMLCanvasElement;
     public engine: BABYLON.Engine;
     public scene: RealmScene;
@@ -34,19 +37,32 @@ export class RealmClass {
     constructor(canvasId: string) {
         this.canvas = <HTMLCanvasElement> document.querySelector(`#${canvasId}`);
         this.engine = new BABYLON.Engine(this.canvas, true);
+        this.engine.loadingScreen = new LoadingScreen('');
         this.scene = new RealmScene(this.engine);
         this.camera = new Camera('camera', this.scene);
-        this.resources = new ResourceManager(ResourceRetrievalMode.XHR, '/static');
         this.objects = new ObjectFactory();
+        this.meshesLoader = new Loader();
+
+        this.meshesLoader.taskAdder = (self, name, root, file) => {
+            return this.scene.loader.addMeshTask(name, '', root, file);
+        };
+
+        this.meshesLoader.resultGetter = (self, task) => {
+            task.loadedMeshes[0].setEnabled(false);
+
+            return task.loadedMeshes[0];
+        };
     }
 
 
     public init(): void {
-        window.dispatchEvent(new Event('ResourceLoad'));
+        this.loadSky();
+        this.loadStates();
+        this.objects.load();
+        this.scene.load();
 
-        this.resources.retrieve().then(() => {
-            this.loadSky();
-            this.loadStates();
+        this.meshesLoader.load().then(() => {
+            this.notifyLoaded();
             let oldMillis: number = RealmClass.now();
 
             this.engine.runRenderLoop(() => {
@@ -60,6 +76,11 @@ export class RealmClass {
                 oldMillis = newMillis;
             });
 
+            this.changeState('second');
+
+            //starShip.position.x = -5;
+            // starShip.onMeshesLoaded();
+
             let i = 0;
             window.setInterval(() => {
                 this.changeState(['first', 'second', 'third'][i]);
@@ -70,10 +91,12 @@ export class RealmClass {
                 }
             }, 2000);
 
-            window.setInterval(() => {
-                this.camera.vibrate(0.8, 1900);
-            }, 2000);
-        });
+            /* window.setInterval(() => {
+                this.camera.explosionAnimate(0.8, 1900);
+            }, 2000); */
+        }); /* .catch((error: string) => {
+            console.error(`Failed to load resource: ${error}`);
+        }); */
     }
 
 
@@ -123,7 +146,7 @@ export class RealmClass {
             return newValue;
         }
 
-        return oldValue + delta;
+        return oldValue + delta * this.animModifier;
     }
 
     public calculateVectorAnim(initVector: BABYLON.Vector3, oldVector: BABYLON.Vector3, newVector: BABYLON.Vector3,
@@ -139,6 +162,18 @@ export class RealmClass {
         return array[Math.floor(Math.random() * array.length)];
     }
 
+    public  getTranslationMatrix(node, mul?, scaling?, position?, rotation?) {
+        return BABYLON.Matrix.Compose(
+            scaling || (node || {}).scaling || new BABYLON.Vector3(1, 1, 1),
+            BABYLON.Quaternion.RotationYawPitchRoll(
+                rotation || ((node || {}).rotation || {}).y || 0,
+                rotation || ((node || {}).rotation || {}).x || 0,
+                rotation || ((node || {}).rotation || {}).z || 0,
+            ),
+            (position || (node || {}).position || BABYLON.Vector3.Zero()).scale(mul || 1),
+        );
+    }
+
 
     private loadSky(): void {
         this.sky = new RealmSky('sky', this.scene);
@@ -147,8 +182,17 @@ export class RealmClass {
 
     private loadStates(): void {
         this.addState(new TestState('first', this.scene));
-        this.addState(new TestState('second', this.scene));
+        this.addState(new OfflineGameState('second', this.scene));
         this.addState(new TestState('third', this.scene));
+    }
+
+
+    private notifyLoaded(): void {
+        this.objects.notifyLoaded();
+
+        this.states.forEach((value: RealmState) => {
+            value.notifyLoaded();
+        });
     }
 
 }

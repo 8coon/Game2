@@ -1,27 +1,37 @@
-import BABYLON from "../../static/babylon";
+
+
+export interface IObject {
+    onLoad(): void;
+    onGrab(): void;
+    onFree(): void;
+    onRender(): void;
+}
 
 
 class Allocated {
-    meshes: BABYLON.Mesh[] = [];
-    free: BABYLON.Mesh[] = [];
+    objects: IObject[] = [];
+    free: IObject[] = [];
 }
+
+
+export type TFactory = () => IObject;
 
 
 interface IObjectProto {
     name: string;
     amount: number;
-    factory: () => BABYLON.Mesh;
+    factory: TFactory;
 }
 
 
 
 export class ObjectFactory {
 
-    public objects: object;
+    public objects: object = {};
     public objectFactories: object = {};
 
 
-    public addObject(name: string, amount: number, factory: () => BABYLON.Mesh): void {
+    public addObject(name: string, amount: number, factory: TFactory): void {
         this.objectFactories[name] = {name, amount, factory};
     }
 
@@ -31,33 +41,45 @@ export class ObjectFactory {
             const objectProto = <IObjectProto> this.objectFactories[name];
 
             this.objects[name] = new Allocated();
-            this.objects[name].meshesLength = objectProto.amount;
 
             for (let i = 0; i < objectProto.amount; i++) {
-                const mesh: BABYLON.Mesh = objectProto.factory();
+                const object: IObject = objectProto.factory();
 
-                this.objects[name].meshes.push(mesh);
-                this.objects[name].free.push(mesh);
+                this.objects[name].objects.push(object);
+                this.free(name, object);
             }
         });
     }
 
 
-    public use(name: string): BABYLON.Mesh {
-        const alloc: Allocated = <Allocated> this.objects[name];
-
-        if (alloc.meshes.length === alloc.free.length) {
-            throw new Error(`All meshes of type "${name}" are allocated!`);
-        }
-
-        return alloc.free.pop();
+    public notifyLoaded(): void {
+        Object.keys(this.objects).forEach((objectName: string) => {
+            this.objects[objectName].objects.forEach((object: IObject) => {
+                object.onLoad();
+            });
+        });
     }
 
 
-    public free(name: string, mesh: BABYLON.Mesh) {
+    public grab(name: string): IObject {
         const alloc: Allocated = <Allocated> this.objects[name];
 
-        alloc.free.push(mesh);
+        if (alloc.free.length === 0) {
+            throw new Error(`All meshes of type "${name}" are allocated!`);
+        }
+
+        const object: IObject = alloc.free.pop();
+        object.onGrab();
+
+        return object;
+    }
+
+
+    public free(name: string, object: IObject) {
+        const alloc: Allocated = <Allocated> this.objects[name];
+
+        object.onFree();
+        alloc.free.push(object);
     }
 
 }

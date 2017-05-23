@@ -15,12 +15,16 @@ export abstract class RealmState extends BABYLON.Mesh {
     }
 
 
-    public abstract onEnter();
-    public abstract onLeave();
+    public abstract onEnter(): void;
+    public abstract onLeave(): void;
 
 
     protected repositionOnAlpha(): void {
         this.rotation.y = this.alpha;
+    }
+
+
+    public notifyLoaded(): void {
     }
 
 }
