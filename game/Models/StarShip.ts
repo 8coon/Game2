@@ -96,6 +96,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public onRender(): void {
         if (this.pilot) {
             this.pilot.think();
+
         }
 
         this.localRealAim.onRender();
