@@ -3,6 +3,7 @@ import {RealmClass} from "../Realm/Realm";
 import {RealmState} from "../Realm/RealmState";
 import {StarShip} from "../Models/StarShip";
 import {IObject} from "../ObjectFactory/ObjectFactory";
+import {HumanPilot} from "../Pilots/HumanPilot";
 
 
 declare const Realm: RealmClass;
@@ -17,7 +18,10 @@ export class OfflineGameState extends RealmState {
         super(name, scene);
 
         Realm.objects.addObject('offlinePlayer', 1, (): IObject => {
-            return new StarShip('offlinePlayer', scene);
+            const starShip: StarShip = new StarShip('offlinePlayer', scene);
+            starShip.pilot = new HumanPilot(starShip);
+
+            return starShip;
         });
 
         this.alpha = 0;
@@ -27,6 +31,7 @@ export class OfflineGameState extends RealmState {
 
     public onEnter() {
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
+        (<HumanPilot> this.offlinePlayer.pilot).grabShip();
     }
 
 

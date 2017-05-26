@@ -18,11 +18,11 @@ export class TestState extends RealmState {
         this.holder = BABYLON.Mesh.CreateBox('holder', 1, scene);
         this.holder.isVisible = false;
         this.holder.parent = this;
+        this.holder.renderingGroupId = 1;
 
         this.cube = BABYLON.Mesh.CreateBox('cube', 1, scene);
         this.cube.position = new BABYLON.Vector3(-5, 0, 0);
         this.cube.material = new BABYLON.StandardMaterial('cube_material', scene);
-        this.cube.renderingGroupId = 1;
         this.cube.parent = this.holder;
 
         const colors: BABYLON.Color3[] = [

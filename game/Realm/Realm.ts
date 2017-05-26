@@ -27,6 +27,10 @@ export class RealmClass {
 
     private states: Map<string, RealmState> = new Map<string, RealmState>();
     public state: RealmState;
+    public pointerLocked: boolean = false;
+
+    private yMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationY(0.5 * Math.PI);
+    private zMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationZ(0.5 * Math.PI);
 
 
     public static now(): number {
@@ -43,6 +47,20 @@ export class RealmClass {
         this.objects = new ObjectFactory();
         this.meshesLoader = new Loader();
 
+        this.canvas.addEventListener('click', () => {
+            if (!this.pointerLocked) {
+                this.grabPointerLock();
+            }
+        });
+
+        if ('onpointerlockchange' in document) {
+            document.addEventListener('pointerlockchange', () => { this.pointerLockChanged(); });
+        } else if ('onmozpointerlockchange' in document) {
+            document.addEventListener('mozpointerlockchange', () => { this.pointerLockChanged(); });
+        } else if ('onwebkitpointerlockchange' in document) {
+            document.addEventListener('webkitpointerlockchange', () => { this.pointerLockChanged(); });
+        }
+
         this.meshesLoader.taskAdder = (self, name, root, file) => {
             return this.scene.loader.addMeshTask(name, '', root, file);
         };
@@ -56,7 +74,7 @@ export class RealmClass {
 
 
     public init(): void {
-        this.loadSky();
+        this.sky = new RealmSky('sky', this.scene);
         this.loadStates();
         this.objects.load();
         this.scene.load();
@@ -65,23 +83,34 @@ export class RealmClass {
             this.notifyLoaded();
             let oldMillis: number = RealmClass.now();
 
+            this.scene.meshes.forEach((mesh: BABYLON.Mesh) => {
+                if (mesh['__skybox__']) {
+                    mesh.renderingGroupId = 0;
+                    return;
+                }
+
+                mesh.renderingGroupId = 1;
+            });
+
             this.engine.runRenderLoop(() => {
                 const newMillis: number = RealmClass.now();
 
                 this.timeDelta = newMillis - oldMillis;
-                this.animModifier = this.timeDelta / (1000 / 60);
+                // this.animModifier = this.timeDelta / (1000 / 60);
+                this.animModifier = 1;
                 this.fps = Math.floor(60 * this.animModifier);
                 this.render();
 
                 oldMillis = newMillis;
             });
 
-            this.changeState('second');
+            this.changeState('offlineGame');
+            //this.changeState('second');
 
             //starShip.position.x = -5;
             // starShip.onMeshesLoaded();
 
-            let i = 0;
+            /*let i = 0;
             window.setInterval(() => {
                 this.changeState(['first', 'second', 'third'][i]);
                 i++;
@@ -91,9 +120,9 @@ export class RealmClass {
                 }
             }, 2000);
 
-            /* window.setInterval(() => {
+            window.setInterval(() => {
                 this.camera.explosionAnimate(0.8, 1900);
-            }, 2000); */
+            }, 2000);*/
         }); /* .catch((error: string) => {
             console.error(`Failed to load resource: ${error}`);
         }); */
@@ -121,8 +150,26 @@ export class RealmClass {
 
 
     public render(): void {
+        this.objects.notifyRendered();
         this.camera.onRender();
         this.scene.render();
+    }
+
+
+    private loadStates(): void {
+        this.addState(new TestState('first', this.scene));
+        this.addState(new TestState('second', this.scene));
+        this.addState(new TestState('third', this.scene));
+        this.addState(new OfflineGameState('offlineGame', this.scene));
+    }
+
+
+    private notifyLoaded(): void {
+        this.objects.notifyLoaded();
+
+        this.states.forEach((value: RealmState) => {
+            value.notifyLoaded();
+        });
     }
 
 
@@ -162,7 +209,39 @@ export class RealmClass {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    public  getTranslationMatrix(node, mul?, scaling?, position?, rotation?) {
+    public grabPointerLock(): void {
+        this.canvas.requestPointerLock = this.canvas.requestPointerLock ||
+                (<any> this.canvas).mozRequestPointerLock ||
+                (<any> this.canvas).webkitRequestPointerLock;
+
+        this.canvas.requestPointerLock();
+    }
+
+    public dropPointerLock(): void {
+        (<any> this.canvas).exitPointerLock = (<any> this.canvas).exitPointerLock ||
+                (<any> this.canvas).mozExitPointerLock ||
+                (<any> this.canvas).webkitExitPointerLock;
+
+        (<any> this.canvas).exitPointerLock();
+    }
+
+    public pointerLockChanged(): void {
+        this.pointerLocked = !this.pointerLocked;
+    }
+
+
+
+    public rotationFromDirection(direction: BABYLON.Vector3): BABYLON.Vector3 {
+        // Expecting a normalized direction vector
+
+        const x: BABYLON.Vector3 = direction;
+        const y: BABYLON.Vector3 = BABYLON.Vector3.TransformCoordinates(x, this.yMatrix);
+        const z: BABYLON.Vector3 = BABYLON.Vector3.TransformCoordinates(x, this.zMatrix);
+
+        return BABYLON.Vector3.RotationFromAxis(z, y, x);
+    }
+
+    public getTranslationMatrix(node, mul?, scaling?, position?, rotation?) {
         return BABYLON.Matrix.Compose(
             scaling || (node || {}).scaling || new BABYLON.Vector3(1, 1, 1),
             BABYLON.Quaternion.RotationYawPitchRoll(
@@ -174,25 +253,34 @@ export class RealmClass {
         );
     }
 
-
-    private loadSky(): void {
-        this.sky = new RealmSky('sky', this.scene);
+    public sign(x: number): number {
+        return x < 0 ? -1 : 1;
     }
 
+    public normalizeAngle(angle: number): number {
+        /* if (angle > 0) {
+            return angle - 2 * Math.PI * Math.floor(angle / (2 * Math.PI));
+        }
 
-    private loadStates(): void {
-        this.addState(new TestState('first', this.scene));
-        this.addState(new OfflineGameState('second', this.scene));
-        this.addState(new TestState('third', this.scene));
+        return angle + 2 * Math.PI * Math.floor(-angle / (2 * Math.PI)); */
+        return Math.asin(Math.sin(angle));
     }
 
+    public normalizeAngles(rotation: BABYLON.Vector3): BABYLON.Vector3 {
+        const result: BABYLON.Vector3 = rotation.clone();
 
-    private notifyLoaded(): void {
-        this.objects.notifyLoaded();
+        result.x = this.normalizeAngle(result.x);
+        result.y = this.normalizeAngle(result.y);
+        result.z = this.normalizeAngle(result.z);
 
-        this.states.forEach((value: RealmState) => {
-            value.notifyLoaded();
+        return result;
+    }
+
+    public sleep(millis: number): Promise<any> {
+        return new Promise<any>((resolve) => {
+            window.setTimeout(() => { resolve() }, millis);
         });
     }
 
 }
+

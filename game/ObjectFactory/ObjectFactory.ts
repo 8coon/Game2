@@ -27,25 +27,24 @@ interface IObjectProto {
 
 export class ObjectFactory {
 
-    public objects: object = {};
-    public objectFactories: object = {};
+    public objects: Map<string, Allocated> = new Map<string, Allocated>();
+    public objectFactories: Map<string, IObjectProto> = new Map<string, IObjectProto>();
 
 
     public addObject(name: string, amount: number, factory: TFactory): void {
-        this.objectFactories[name] = {name, amount, factory};
+        this.objectFactories.set(name, {name, amount, factory});
     }
 
 
     public load(): void {
-        Object.keys(this.objectFactories).forEach((name: string) => {
-            const objectProto = <IObjectProto> this.objectFactories[name];
-
-            this.objects[name] = new Allocated();
+        this.objectFactories.forEach((objectProto: IObjectProto, name: string) => {
+            this.objects.set(name, new Allocated());
 
             for (let i = 0; i < objectProto.amount; i++) {
                 const object: IObject = objectProto.factory();
+                (<any> object).renderingGroupId = 1;
 
-                this.objects[name].objects.push(object);
+                this.objects.get(name).objects.push(object);
                 this.free(name, object);
             }
         });
@@ -53,22 +52,34 @@ export class ObjectFactory {
 
 
     public notifyLoaded(): void {
-        Object.keys(this.objects).forEach((objectName: string) => {
-            this.objects[objectName].objects.forEach((object: IObject) => {
+        this.objects.forEach((allocated: Allocated) => {
+            allocated.objects.forEach((object: IObject) => {
                 object.onLoad();
             });
         });
     }
 
 
+    public notifyRendered(): void {
+        this.objects.forEach((allocated: Allocated) => {
+            allocated.objects.forEach((object: IObject) => {
+                if (!object['_free']) {
+                    object.onRender();
+                }
+            });
+        });
+    }
+
+
     public grab(name: string): IObject {
-        const alloc: Allocated = <Allocated> this.objects[name];
+        const alloc: Allocated = this.objects.get(name);
 
         if (alloc.free.length === 0) {
             throw new Error(`All meshes of type "${name}" are allocated!`);
         }
 
         const object: IObject = alloc.free.pop();
+        object['_free'] = false;
         object.onGrab();
 
         return object;
@@ -76,9 +87,10 @@ export class ObjectFactory {
 
 
     public free(name: string, object: IObject) {
-        const alloc: Allocated = <Allocated> this.objects[name];
+        const alloc: Allocated = this.objects.get(name);
 
         object.onFree();
+        object['_free'] = true;
         alloc.free.push(object);
     }
 

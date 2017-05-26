@@ -36,9 +36,13 @@ export class RealmSky extends BABYLON.Mesh {
 
         this.cube.material = material;
         this.cube.infiniteDistance = true;
-        this.cube.parent = this;
-        this.cube.renderingGroupId = 0;
+        this.cube['__skybox__'] = true;
         this.cube.registerBeforeRender(() => { this.onRender(); });
+
+        const ground: BABYLON.Mesh = BABYLON.Mesh.CreateGround('ground', 1000, 1000, 50, scene);
+        ground.position.z = -100;
+        ground.material = new BABYLON.StandardMaterial('ground', scene);
+        ground.material.wireframe = true;
     }
 
 

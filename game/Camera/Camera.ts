@@ -1,6 +1,7 @@
 import BABYLON from "../../static/babylon";
 import {Animator, AnimationAction} from "../Animation/Animator";
 import {RealmClass} from "../Realm/Realm";
+import {StarShip} from "../Models/StarShip";
 
 
 declare const Realm: RealmClass;
@@ -13,13 +14,17 @@ export enum CameraMode {
 }
 
 
+export interface IFollowable extends BABYLON.Mesh {
+    readonly direction: BABYLON.Vector3;
+}
+
+
 export class ExplosionAnimationAction {
 
     private amplitude: number = 0;
     private maxAmplitude: number;
     private amplitudeStep: number;
     private lag: number = 0.2;
-    private vectorLag: number = 50;
 
     private srcPosition: BABYLON.Vector3;
     private calcPosition: BABYLON.Vector3;
@@ -38,8 +43,6 @@ export class ExplosionAnimationAction {
 
 
     private animateAmplitude(): void {
-        /*this.amplitude = this.maxAmplitude * Math.sin(0.5 * Math.PI * (<AnimationAction> (<any> this)).time /
-                (<AnimationAction> (<any> this)).duration);*/
         if (this.amplitude === 0) {
             this.amplitude = this.maxAmplitude;
         }
@@ -90,29 +93,29 @@ export class ExplosionAnimationAction {
 
 export class Camera extends BABYLON.Mesh {
 
-    public camera: BABYLON.ArcRotateCamera;
+    public camera: BABYLON.TargetCamera;
 
-    private followsMesh: BABYLON.Mesh;
+    private followsMesh: StarShip;
     public followLag: number = 50;
     public alignLag: number = 10;
-    public rotationLag: number = 5;
 
     private mode: CameraMode = CameraMode.DIRECTION;
-    public alignAlpha: number = 0;
-    private currentAlignAlpha: number;
+    private alignVector: BABYLON.Vector3 = BABYLON.Axis.X.negate();
     public animator: Animator;
 
 
     constructor(name: string, scene: BABYLON.Scene) {
         super(name, scene);
 
-        this.camera = new BABYLON.ArcRotateCamera('camera', 0, Math.PI / 2, 1, BABYLON.Vector3.Zero(), scene);
+        //this.camera = new BABYLON.ArcRotateCamera('camera', 0, Math.PI / 2, 1, BABYLON.Vector3.Zero(), scene);
+        this.camera = new BABYLON.TargetCamera('camera', BABYLON.Vector3.Zero(), scene);
+        this.camera.setTarget(BABYLON.Axis.X.negate());
         this.camera.parent = this;
         this.animator = new Animator(this);
     }
 
 
-    public follow(mesh: BABYLON.Mesh): void {
+    public follow(mesh: StarShip): void {
         this.mode = CameraMode.FOLLOWING;
 
         this.followsMesh = mesh;
@@ -121,7 +124,7 @@ export class Camera extends BABYLON.Mesh {
     public initLookAtDirection(alpha: number): void {
         this.lookAtDirection(alpha);
 
-        this.currentAlignAlpha = -alpha;
+        this.camera.setTarget(this.alignVector);
     }
 
 
@@ -129,7 +132,9 @@ export class Camera extends BABYLON.Mesh {
         this.mode = CameraMode.DIRECTION;
 
         this.followsMesh = undefined;
-        this.alignAlpha = -alpha;
+
+        const rotMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationY(alpha);
+        this.alignVector = BABYLON.Vector3.TransformCoordinates(BABYLON.Axis.X.negate(), rotMatrix);
     }
 
 
@@ -139,15 +144,25 @@ export class Camera extends BABYLON.Mesh {
         switch (this.mode) {
 
             case CameraMode.DIRECTION: {
-                this.position = Realm.calculateVectorLag(this.position, BABYLON.Vector3.Zero(), this.alignLag);
+                this.camera.position = Realm.calculateVectorLag(this.camera.position, BABYLON.Vector3.Zero(),
+                        this.alignLag);
 
-                this.camera.alpha = Realm.calculateLag(this.camera.alpha, this.alignAlpha, this.alignLag);
-                this.camera.beta = Realm.calculateLag(this.camera.beta, Math.PI / 2, this.alignLag);
+                this.camera.setTarget(Realm.calculateVectorLag(this.camera.getTarget(),
+                        this.alignVector, this.alignLag));
             } break;
 
 
             case CameraMode.FOLLOWING: {
+                let offset: BABYLON.Vector3 = this.followsMesh.direction.clone().scale(7 * Realm.animModifier);
+                offset.y -= 0.8;
 
+                this.camera.position = Realm.calculateVectorLag(this.camera.position,
+                        this.followsMesh.position.subtract(offset), this.followLag);
+
+                this.camera.setTarget(Realm.calculateVectorLag(this.camera.getTarget(),
+                        this.followsMesh.position.add(
+                            new BABYLON.Vector3(-0.2, 0.6, 0)
+                        ), this.alignLag));
             } break;
 
         }

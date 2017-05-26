@@ -12,6 +12,8 @@ export abstract class RealmState extends BABYLON.Mesh {
 
     constructor(name: string, scene: BABYLON.Scene) {
         super(name, scene);
+
+        this.renderingGroupId = 1;
     }
 
 
