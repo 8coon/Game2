@@ -18,7 +18,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public pilot: Pilot;
 
     public speed: number = 0;
-    public maxSpeed: number = 0.07;
+    public maxSpeed: number = 0.07 * 2;
     public aimLag: number = 50;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
@@ -86,17 +86,26 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     }
 
 
-    public updateRoll(): void {
-        /* this.zRotation = Realm.calculateLag(this.zRotation, this.zRotation + this.localRealAim.value.z,
-                this.aimLag); */
-        this.zNextRotation += this.localRealAim.value.z;
+    public setRoll(roll: number): void {
+        if (Math.abs(roll) < 5) {
+            roll = 0;
+        }
+
+        this.zNextRotation = 1.7 * roll;
+
+        if (this.zNextRotation > Math.PI * 0.4) {
+            this.zNextRotation = Math.PI * 0.4;
+        }
+
+        if (this.zNextRotation < -Math.PI * 0.4) {
+            this.zNextRotation = -Math.PI * 0.4;
+        }
     }
 
 
     public onRender(): void {
         if (this.pilot) {
             this.pilot.think();
-
         }
 
         this.localRealAim.onRender();
@@ -116,15 +125,15 @@ export class StarShip extends BABYLON.Mesh implements IObject {
         this.rotation = Realm.rotationFromDirection(this.direction);
 
         if (!this.aimResolve) {
+            this.zRotation = Realm.calculateLag(this.zRotation, this.zNextRotation, 20);
+            this.zNextRotation = Realm.calculateLag(this.zNextRotation, 0, 5);
+            this.ship.rotation.x = Realm.calculateLag(this.ship.rotation.x, Math.PI + this.zRotation, 10);
+
             if (this.rotation.z > 0) {
                 this.rotation.z = 0.5 * Math.PI;
             } else {
                 this.rotation.z = -0.5 * Math.PI;
             }
-
-            this.zRotation = Realm.calculateLag(this.zRotation, this.zNextRotation, 4 * this.aimLag);
-            this.zNextRotation = Realm.calculateLag(this.zNextRotation, 0, this.aimLag);
-            this.rotation.z -= 3 * this.zRotation;
         }
 
         this.direction.scaleInPlace(this.speed * Realm.animModifier);
