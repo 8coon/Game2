@@ -1,6 +1,9 @@
 import BABYLON from "../../static/babylon";
 import {RealmClass} from "../Realm/Realm";
 import {IObject} from "../ObjectFactory/ObjectFactory";
+import FastSimplexNoise from "../../node_modules/fast-simplex-noise/src";
+import {OfflineGameState} from "../States/OfflineGameState";
+import {StarShip} from "../Models/StarShip";
 
 
 declare const Realm: RealmClass;
@@ -14,7 +17,7 @@ export class MapSection extends BABYLON.Mesh implements IObject {
     public shape: BABYLON.Mesh;
     public border: BABYLON.Mesh;
     public length: number = 1;
-    public colorProgressStep: number = 0.05;
+    public colorProgressStep: number = 0.3;
     public colorProgress: number = 0;
 
 
@@ -74,7 +77,7 @@ export class MapSection extends BABYLON.Mesh implements IObject {
     }
 
     public onRender(): void {
-        let ratio: number = Math.sin(this.colorProgress);
+        let ratio: number = Math.sin(1.1 * this.colorProgress);
         ratio = Math.round(ratio * 3) / 3;
 
         (<any> this.shape.material).emissiveIntensity = ratio;
@@ -116,30 +119,24 @@ export class Random {
         return new BABYLON.Vector2(this.number, this.number);
     }
 
-}
 
-
-export class SmoothRandom {
-    private random: Random;
-    private values: number[] = [];
-
-
-    constructor(smooth: number = 50, seed?: number) {
-        this.random = new Random(seed);
-
-        for (let i = 0; i < smooth; i++) {
-            this.values.push(this.random.number);
-        }
+    public random(): number {
+        return this.number;
     }
 
+    public range(start: number, end: number, int: boolean = true): number {
+        let floor = x => Math.floor(x);
+        if (!int) floor = x => x;
 
-    public get number(): number {
-        const result: number = this.values.reduce((sum, val) => sum + val, 0) / this.values.length;
+        return start + floor(this.number * (end - start));
+    }
 
-        this.values.splice(0, 1);
-        this.values.push(this.random.number);
+    public choice(items: any[]): any {
+        if (items.length === 0) {
+            return undefined;
+        }
 
-        return result;
+        return items[Math.floor(this.number * items.length)];
     }
 
 }
@@ -154,9 +151,11 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     private rand2: Random;
     private v1: BABYLON.Vector2;
     private v2: BABYLON.Vector2;
+    private noise: FastSimplexNoise;
+    private lastSectionIndex: number = 0;
 
 
-    constructor(name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh, seed: number) {
+    constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, seed: number) {
         super(name, scene, parent);
         this.seed = seed;
 
@@ -164,6 +163,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         this.rand2 = new Random(this.rand1.number);
         this.v1 = this.rand1.Vector2.scale(10000);
         this.v2 = this.rand2.Vector2.scale(10000);
+        this.noise = new FastSimplexNoise(this.rand2.number);
 
         Realm.objects.addObjectIfNone(`${name}__mapSection`, 101, (): IObject => {
             return new MapSection(`${name}__mapSection`, scene, this);
@@ -178,18 +178,63 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         this.testGenerate1();
     }
 
+
     public onFree(): void {
         this.sections.forEach(section => Realm.objects.free(`${this.name}__mapSection`, section));
         this.sections = [];
     }
 
+
     public onRender(): void {
+        const section: MapSection = this.findSection();
+        const player: StarShip = (<OfflineGameState> this.parent).offlinePlayer;
+
+        // (<OfflineGameState> this.parent).offlinePlayer.setImmediateAim(section.position);
+        //player.mixAim(section.getEndVector().subtract(section.position).negate().add(player.position));
+        player.mixAim(section.position);
+    }
+
+
+    private nextSectionIndex(last: number): number {
+        if (last === this.sections.length - 1) {
+            return 0;
+        }
+
+        return last + 1;
+    }
+
+    private nextNearestSectionIndex(last: number): number {
+        const next: number = this.nextSectionIndex(last);
+
+        if (BABYLON.Vector3.DistanceSquared(
+            this.sections[next].position,
+            (<OfflineGameState> this.parent).offlinePlayer.position,
+        ) > BABYLON.Vector3.DistanceSquared(
+            this.sections[last].position,
+            (<OfflineGameState> this.parent).offlinePlayer.position,
+        )) {
+            return undefined;
+        }
+
+        return next;
+    }
+
+    private findSection(offset: number = 5): MapSection {
+        let current: number = this.lastSectionIndex;
+        let last: number = current;
+
+        for (; current !== undefined; current = this.nextNearestSectionIndex(current)) {
+            last = current;
+        }
+
+        this.lastSectionIndex = last;
+        return this.sections[this.nextSectionIndex(last + offset)];
     }
 
 
     public testGenerate1(): void {
         let last: MapSection = <MapSection> Realm.objects.grab(`${this.name}__mapSection`);
-        last.position = new BABYLON.Vector3(0, -1, 0);
+        last.position = new BABYLON.Vector3(0, -40, 0);
         this.sections.push(last);
 
         for (let i = 0; i < 100; i++) {
@@ -210,33 +255,27 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
 
         this.sections.splice(0, 1);
         this.sections.push(next);
+
+        this.lastSectionIndex--;
+        if (this.lastSectionIndex < 0) {
+            this.lastSectionIndex = this.sections.length - 1;
+        }
     }
 
 
     private nextVector(): BABYLON.Vector3 {
-        let value1: number = Realm.perlinNoise(this.v1.x, this.v1.y) * 0.001;
-        let value2: number = Realm.perlinNoise(this.v2.x, this.v2.y) * 0.001;
+        let value1: number = this.noise.scaled([this.v1.x, this.v1.y]);
+        let value2: number = this.noise.scaled([this.v2.x, this.v2.y]);
 
-        /*if (value1 >  0.1 * Math.PI) value1 =  0.1 * Math.PI;
-        if (value1 < -0.1 * Math.PI) value1 = -0.1 * Math.PI;
-        if (value2 >  0.1 * Math.PI) value2 =  0.1 * Math.PI;
-        if (value2 < -0.1 * Math.PI) value2 = -0.1 * Math.PI;*/
-
-        const step: number = 0.01;
+        const step: number = 0.005;
         this.v1.addInPlace(new BABYLON.Vector2(step, step));
         this.v2.addInPlace(new BABYLON.Vector2(step, step));
 
         return new BABYLON.Vector3(
             0,
-            value1,
-            value2,
+            value1 * 0.5,
+            value2 * 0.5,
         );
-
-        /*return new BABYLON.Vector3(
-            0,
-            this.rand1.number - 0.5,
-            this.rand2.number - 0.5,
-        ).scale(0.1);*/
     }
 
 }

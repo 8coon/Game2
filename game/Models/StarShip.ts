@@ -19,16 +19,17 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
     public speed: number = 0;
     public maxSpeed: number = 0.07 * 2;
-    public aimLag: number = 50;
+    public aimLag: number = 20;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
 
-    public direction: BABYLON.Vector3 = BABYLON.Axis.X;
-    private _aim: BABYLON.Vector3 = BABYLON.Axis.X;
-    private localRealAim: AnimatedValue<BABYLON.Vector3> = AnimatedValue.resolve(BABYLON.Axis.X);
-    private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X;
+    public direction: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
+    private _aim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
+    private localRealAim: AnimatedValue<BABYLON.Vector3> = AnimatedValue.resolve(BABYLON.Axis.X.scale(-1));
+    private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private zRotation: number = 0;
     private zNextRotation: number = 0;
+
 
     public get aim(): BABYLON.Vector3 {
         return this._aim;
@@ -83,6 +84,11 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public setImmediateAim(aim: BABYLON.Vector3): void {
         this.aim = aim;
         this.localRealAim = AnimatedValue.resolve(this.localRealAim.endValue);
+    }
+
+
+    public mixAim(aim: BABYLON.Vector3): void {
+        this.setImmediateAim(Realm.calculateVectorLag(this.aim, aim, 1));
     }
 
 

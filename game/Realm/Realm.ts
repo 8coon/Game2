@@ -158,9 +158,9 @@ export class RealmClass {
 
 
     private loadStates(): void {
-        this.addState(new TestState('first', this.scene));
-        this.addState(new TestState('second', this.scene));
-        this.addState(new TestState('third', this.scene));
+        // this.addState(new TestState('first', this.scene));
+        // this.addState(new TestState('second', this.scene));
+        // this.addState(new TestState('third', this.scene));
         this.addState(new OfflineGameState('offlineGame', this.scene));
     }
 

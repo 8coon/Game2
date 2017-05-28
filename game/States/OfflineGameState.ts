@@ -5,6 +5,7 @@ import {StarShip} from "../Models/StarShip";
 import {IObject} from "../ObjectFactory/ObjectFactory";
 import {HumanPilot} from "../Pilots/HumanPilot";
 import {OfflineMap, MapSection} from "../Map/OfflineMap";
+import {Building} from "../Map/Building";
 
 
 declare const Realm: RealmClass;
@@ -30,6 +31,10 @@ export class OfflineGameState extends RealmState {
             return <IObject> new OfflineMap('offlineMap', scene, this, Math.random());
         });
 
+        Realm.objects.addObject('testBuilding', 1, (): IObject => {
+            return <IObject> new Building(Math.random(), 'testBuilding', scene, this);
+        });
+
         this.alpha = 0;
         this.repositionOnAlpha();
     }
@@ -39,7 +44,11 @@ export class OfflineGameState extends RealmState {
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
         this.offlineMap = <OfflineMap> Realm.objects.grab('offlineMap');
 
-        (<HumanPilot> this.offlinePlayer.pilot).grabShip();
+        const building: Building = <Building> Realm.objects.grab('testBuilding');
+        building.position.x = -100;
+        building.position.y = -25;
+
+        // (<HumanPilot> this.offlinePlayer.pilot).grabShip();
     }
 
 

@@ -32,6 +32,7 @@
         "express": "4.15.2",
         "reflect-metadata": "0.1.10",
         "jsworks": "https://github.com/8coon/next",
-        "babylonjs": "2.5"
+        "babylonjs": "2.5",
+        "fast-simplex-noise": "3.2.0"
     }
 }
