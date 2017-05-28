@@ -131,7 +131,7 @@ export class Random {
         return start + floor(this.number * (end - start));
     }
 
-    public choice(items: any[]): any {
+    public choose(items: any[]): any {
         if (items.length === 0) {
             return undefined;
         }

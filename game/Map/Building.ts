@@ -137,14 +137,11 @@ export abstract class WallBuilder extends Builder {
     public build(index: number): void {};
     public abstract buildWall(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
                           rightBottom: Vector3): void;
-}
 
-
-export class BlankWallBuilder extends  WallBuilder {
-    public buildWall(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
-                              rightBottom: Vector3): void {
+    protected buildBlankWall(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
+                             rightBottom: Vector3): void {
         const normal: Vector3 = Vector3.Cross(
-                rightTop.subtract(leftTop), leftBottom.subtract(leftTop)
+            rightTop.subtract(leftTop), leftBottom.subtract(leftTop)
         ).normalize();
 
         this.concatVector(this.positions, leftBottom);
@@ -162,8 +159,46 @@ export class BlankWallBuilder extends  WallBuilder {
 }
 
 
+export class BlankBuilder extends WallBuilder {
+    public buildWall(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
+                     rightBottom: Vector3): void {
+        this.buildBlankWall(leftBottom, leftTop, rightTop, rightBottom);
+    }
+}
+
+
+export class BlankWallBuilder extends WallBuilder {
+    public buildWall(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
+                     rightBottom: Vector3): void {
+        this.buildBlankWall(leftBottom, leftTop, rightTop, rightBottom);
+
+
+    }
+}
+
+
 export abstract class BuildingShapeBuilder extends Builder {
-    public readonly floorHeight: number = 2;
+    public readonly floorHeight: number = 4;
+
+    protected buildWallAligned(start: Vector3, height: number, width: number, align: Vector3,
+                               builder: WallBuilder, initOffset: number, index: number, vertIndex: number,
+                               customStart?: Vector3, customEnd?: Vector3): void {
+        const alignNormalized: Vector3 = align.clone().normalize();
+        let alignStart: Vector3 = start.add(alignNormalized.clone().scale(initOffset + width * index));
+        let alignEnd: Vector3 = start.add(alignNormalized.clone().scale(initOffset + width * (index + 1)));
+
+        if (customStart && customEnd) {
+            alignStart = customStart;
+            alignEnd = customEnd;
+        }
+
+        const nearBottom: Vector3 = new Vector3(alignStart.x, height * vertIndex, alignStart.z);
+        const farBottom: Vector3 = new Vector3(alignEnd.x, height * vertIndex, alignEnd.z);
+        const farTop: Vector3 = farBottom.add(new Vector3(0, height, 0));
+        const nearTop: Vector3 = nearBottom.add(new Vector3(0, height, 0));
+
+        builder.buildWall(nearBottom, nearTop, farTop, farBottom);
+    }
 }
 
 
@@ -172,34 +207,76 @@ export class RectangularBuildingShapeBuilder extends BuildingShapeBuilder {
     public zParam: number = this.random.range(10, 20, false);
     public walls: WallBuilder[];
 
+
     public build(index: number): void {
-        if (!this.walls) {
+        /*if (!this.walls) {
             this.walls = [];
-            const builders: any[] = [BlankWallBuilder];
+            const builders: any[] = [BlankBuilder, BlankWallBuilder];
 
             for (let i = 0; i < 4; i++) {
-                this.walls.push(new (this.random.choice(builders))(
+                this.walls.push(new (this.random.choose(builders))(
                     this.random, this.positions, this.normals, this.colors, this.indices
                 ));
             }
+        }*/
+        const builders: any[] = [BlankBuilder, BlankWallBuilder];
+
+        const patterns: WallBuilder[][] = [];
+        const xTiles: number = Math.floor(this.xParam / this.floorHeight);
+        const zTiles: number = Math.floor(this.zParam / this.floorHeight);
+
+        const xPattern: WallBuilder[] = [];
+        for (let i = 0; i < xTiles; i++) {
+            xPattern.push(new (this.random.choose(builders))
+                    (this.random, this.positions, this.normals, this.colors, this.indices));
+        }
+        const zPattern: WallBuilder[] = [];
+        for (let i = 0; i < zTiles; i++) {
+            zPattern.push(new (this.random.choose(builders))
+                    (this.random, this.positions, this.normals, this.colors, this.indices));
         }
 
-        const y: number = index * this.floorHeight;
-        const leftNearBottom: Vector3 = new Vector3(-this.xParam, y, -this.zParam);
-        const leftFarBottom: Vector3 = leftNearBottom.add(new Vector3(2 * this.xParam, 0, 0));
-        const rightFarBottom: Vector3 = leftFarBottom.add(new Vector3(0, 0, 2 * this.zParam));
-        const rightNearBottom: Vector3 = rightFarBottom.subtract(new Vector3(2 * this.xParam, 0, 0));
+        patterns.push(xPattern, zPattern, xPattern, zPattern);
+        this.buildPatterns(index, patterns);
+    }
 
-        const topVector: Vector3 = new Vector3(0, this.floorHeight, 0);
-        const leftNearTop: Vector3 = leftNearBottom.add(topVector);
-        const leftFarTop: Vector3 = leftFarBottom.add(topVector);
-        const rightFarTop: Vector3 = rightFarBottom.add(topVector);
-        const rightNearTop: Vector3 = rightNearBottom.add(topVector);
 
-        this.walls[0].buildWall(leftNearBottom, leftNearTop, leftFarTop, leftFarBottom);
-        this.walls[1].buildWall(leftFarBottom, leftFarTop, rightFarTop, rightFarBottom);
-        this.walls[2].buildWall(rightFarBottom, rightFarTop, rightNearTop, rightNearBottom);
-        this.walls[3].buildWall(rightNearBottom, rightNearTop, leftNearTop, leftNearBottom);
+    // Pattern order is: left, top, right, bottom
+    protected buildPatterns(index: number, patterns: WallBuilder[][]): void {
+        const leftStart: Vector3 = new Vector3(-this.xParam, index * this.floorHeight, -this.zParam);
+        const leftAlign: Vector3 = new Vector3(2 * this.xParam, 0, 0);
+
+        const topStart: Vector3 = leftStart.add(leftAlign);
+        const topAlign: Vector3 = new Vector3(0, 0, 2 * this.zParam);
+
+        const rightStart: Vector3 = topStart.add(topAlign);
+        const rightAlign: Vector3 = new Vector3(-2 * this.xParam, 0, 0);
+
+        const bottomStart: Vector3 = rightStart.add(rightAlign);
+        const bottomAlign: Vector3 = new Vector3(0, 0, -2 * this.zParam);
+
+
+        const blankBuilder: BlankBuilder = new BlankBuilder(this.random, this.positions, this.normals,
+                this.colors, this.indices);
+        const order: Vector3[][] = [ [leftStart, leftAlign], [topStart, topAlign], [rightStart, rightAlign],
+                [bottomStart, bottomAlign] ];
+
+        order.forEach((order: Vector3[], i: number) => {
+            const offset: number = order[1].length() - Math.floor(patterns[i].length * this.floorHeight);
+
+            this.buildWallAligned(order[0], this.floorHeight, this.floorHeight, order[1], blankBuilder,
+                    offset, 0, index, order[0], order[0].add(order[1].clone().normalize().scale(offset)));
+
+            patterns[i].forEach((builder: WallBuilder, j: number) => {
+                this.buildWallAligned(order[0], this.floorHeight, this.floorHeight, order[1], builder,
+                        offset, j, index);
+            });
+
+            this.buildWallAligned(order[0], this.floorHeight, this.floorHeight, order[1], blankBuilder,
+                    offset, 0, index,
+                    order[0].add(order[1]).subtract(order[1].clone().normalize().scale(offset)),
+                    order[0].add(order[1]));
+        });
     }
 }
 
@@ -255,9 +332,9 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
             shapes.concat([HexagonBuildingShapeBuilder, Complex1BuildingShapeBuilder]);
         }
 
-        this.shape = new (this.random.choice(shapes))
+        this.shape = new (this.random.choose(shapes))
                 (this.random, this.positions, this.normals, this.colors, this.indices);
-        this.floors = this.random.range(30, 80);
+        this.floors = this.random.range(10, 20);
 
         for (let i = 0; i < this.floors; i++) {
             this.buildFloor(i);
@@ -269,7 +346,7 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
         vertexData.positions = this.positions;
         vertexData.indices = this.indices;
         vertexData.normals = this.normals;
-        vertexData.colors = this.colors;
+        //vertexData.colors = this.colors;
 
         vertexData.applyToMesh(this, false);
     }
