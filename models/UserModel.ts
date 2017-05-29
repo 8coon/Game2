@@ -19,7 +19,6 @@ export class UserModel implements UserModelFields, IModel {
     @JSWorks.ModelPrimaryKey
     id: number;
 
-
     @JSWorks.ModelField
     login: string;
 
@@ -28,6 +27,22 @@ export class UserModel implements UserModelFields, IModel {
 
     @JSWorks.ModelField
     password: string;
+
+    public current(): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] + '/session/current',
+                JSWorks.HTTPMethod.GET,
+            ).then((data) => {
+                if (!data['status']) {
+                    (<IModel> this).apply(data);
+                }
+
+                resolve(this);
+            }).catch((err) => {
+                resolve(this);
+            });
+        });
+    }
 
 
     public create(): Promise<UserModel> {
@@ -43,6 +58,77 @@ export class UserModel implements UserModelFields, IModel {
                 reject(err);
             });
         });
+    }
+
+    public signin(): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] + '/session/login',
+                JSWorks.HTTPMethod.POST,
+                JSON.stringify({ login_or_email: this.email, password: this.password }),
+                { 'Content-Type': 'application/json' },
+            ).then((data) => {
+                if (data['error']) {
+                    reject(data['error']);
+                    return;
+                }
+
+                (<IModel> this).apply(data);
+                resolve(this);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    public read(id?: number): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(
+                JSWorks.config['backendURL'] + `/user/${id || this.id}`,
+                JSWorks.HTTPMethod.GET
+            ).then((data) => {
+                (<IModel> this).apply(data);
+                resolve(this);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    public update(): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(
+                JSWorks.config['backendURL'] + `/user/update`,
+                JSWorks.HTTPMethod.POST,
+                JSON.stringify((<IModel> this).gist()),
+                { 'Content-Type': 'application/json' },
+            ).then((data) => {
+                (<IModel> this).apply(data);
+                (<IModel> this).setDirty(false);
+
+                resolve(this);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    public logout(): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(
+                JSWorks.config['backendURL'] + '/session/logout',
+                JSWorks.HTTPMethod.POST,
+                JSON.stringify((<IModel> this).gist()),
+                { 'Content-Type': 'application/json' },
+            ).then((data) => {
+                resolve();
+            }).catch((err) => {
+                resolve();
+            });
+        });
+    }
+
+    public loggedIn(): boolean {
+        return this.id !== undefined;
     }
 
 }
