@@ -31,9 +31,9 @@ export class OfflineGameState extends RealmState {
             return <IObject> new OfflineMap('offlineMap', scene, this, Math.random());
         });
 
-        Realm.objects.addObject('testBuilding', 1, (): IObject => {
-            return <IObject> new Building(Math.random(), 'testBuilding', scene, this);
-        });
+        // Realm.objects.addObject('testBuilding', 1, (): IObject => {
+        //     return <IObject> new Building(Math.random(), 'testBuilding', scene, this);
+        // });
 
         this.alpha = 0;
         this.repositionOnAlpha();
@@ -44,12 +44,12 @@ export class OfflineGameState extends RealmState {
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
         this.offlineMap = <OfflineMap> Realm.objects.grab('offlineMap');
 
-        const building: Building = <Building> Realm.objects.grab('testBuilding');
-        building.position.x = -100;
-        building.position.y = -60;
-        building.scaling = new BABYLON.Vector3(0.35, 0.35, 0.35);
+        // const building: Building = <Building> Realm.objects.grab('testBuilding');
+        // building.position.x = -100;
+        // building.position.y = -60;
+        // building.scaling = new BABYLON.Vector3(0.35, 0.35, 0.35);
 
-        //(<HumanPilot> this.offlinePlayer.pilot).grabShip();
+        (<HumanPilot> this.offlinePlayer.pilot).grabShip();
     }
 
 

@@ -20,10 +20,17 @@
 </head>
 <body>
 
+<script>
+    JSWorks.config = {
+            backendURL: 'https://motion-project.herokuapp.com/'
+        }
+</script>
+
     <app-info>
         <app-routes>
 
             <app-route id="MenuRoute" page="MenuPage" default></app-route>
+            <app-route id="LoginRoute" page="LoginPage" match="login"></app-route>
 
         </app-routes>
     </app-info>

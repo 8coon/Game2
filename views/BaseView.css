@@ -1,0 +1,15 @@
+html, body, app-main, app-main > app-view, .base-container {
+    height: 100%;
+}
+
+.base-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+
+.base-content {
+    height: 100%;
+    flex: 1;
+}
