@@ -36,6 +36,18 @@ export class ObjectFactory {
     }
 
 
+    public hasObject(name: string): boolean {
+        return this.objectFactories.has(name);
+    }
+
+
+    public addObjectIfNone(name: string, amount: number, factory: TFactory): void {
+        if (!this.hasObject(name)) {
+            this.addObject(name, amount, factory);
+        }
+    }
+
+
     public load(): void {
         this.objectFactories.forEach((objectProto: IObjectProto, name: string) => {
             this.objects.set(name, new Allocated());

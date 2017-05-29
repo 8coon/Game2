@@ -43,6 +43,7 @@ export class RealmSky extends BABYLON.Mesh {
         ground.position.z = -100;
         ground.material = new BABYLON.StandardMaterial('ground', scene);
         ground.material.wireframe = true;
+        ground.isVisible = false;
     }
 
 

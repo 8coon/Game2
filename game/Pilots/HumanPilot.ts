@@ -25,9 +25,23 @@ export class HumanPilot extends Pilot {
 
 
     public grabShip(): void {
-        this.canControl = false;
+        this.canControl = true;
+        Realm.camera.follow(this.ship);
 
         Promise.resolve().then(() => {
+            this.ship.position = new BABYLON.Vector3(-5, 0, 0);
+            this.ship.setImmediateAim(new BABYLON.Vector3(-10, -1, 0));
+            this.ship.speed = this.ship.maxSpeed;
+
+            return this.ship.atAim();
+        }).then(() => {
+            //this.canControl = true;
+            Realm.camera.follow(this.ship);
+        });
+
+        //this.canControl = false;
+
+        /*Promise.resolve().then(() => {
             this.ship.position = new BABYLON.Vector3(5, -4, -3);
             this.ship.setImmediateAim(new BABYLON.Vector3(-2, 0, 0.8));
 
@@ -46,7 +60,7 @@ export class HumanPilot extends Pilot {
         }).then(() => {
             this.ship.aim = new BABYLON.Vector3(-20, 0, 0);
             this.canControl = true;
-        })
+        })*/
     }
 
 
@@ -66,15 +80,15 @@ export class HumanPilot extends Pilot {
             (<any> event).mozMovementY ||
             (<any> event).webkitMovementY || 0;
 
-        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 0.05, this.movementLag);
-        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 0.05, this.movementLag);
-        this.ship.updateRoll();
+        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 0.5, this.movementLag);
+        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 0.9, this.movementLag);
+        // this.ship.setRoll(movX * 0.5);
     }
 
 
     public think(): void {
         if (this.canControl) {
-            this.ship.setImmediateAim(this.ship.position.add(new BABYLON.Vector3(
+            this.ship.mixAim(this.ship.position.add(new BABYLON.Vector3(
                 -1,
                 -this.movementY,
                 this.movementX,

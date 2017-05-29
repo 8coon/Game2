@@ -18,17 +18,18 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public pilot: Pilot;
 
     public speed: number = 0;
-    public maxSpeed: number = 0.07;
-    public aimLag: number = 50;
+    public maxSpeed: number = 0.07 * 2;
+    public aimLag: number = 20;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
 
-    public direction: BABYLON.Vector3 = BABYLON.Axis.X;
-    private _aim: BABYLON.Vector3 = BABYLON.Axis.X;
-    private localRealAim: AnimatedValue<BABYLON.Vector3> = AnimatedValue.resolve(BABYLON.Axis.X);
-    private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X;
+    public direction: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
+    private _aim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
+    private localRealAim: AnimatedValue<BABYLON.Vector3> = AnimatedValue.resolve(BABYLON.Axis.X.scale(-1));
+    private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private zRotation: number = 0;
     private zNextRotation: number = 0;
+
 
     public get aim(): BABYLON.Vector3 {
         return this._aim;
@@ -66,7 +67,8 @@ export class StarShip extends BABYLON.Mesh implements IObject {
         );
 
         this.light.parent = this;
-        this.light.intensity = 0.7;
+        this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
+        this.light.intensity = 0.3;
     }
 
 
@@ -86,17 +88,31 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     }
 
 
-    public updateRoll(): void {
-        /* this.zRotation = Realm.calculateLag(this.zRotation, this.zRotation + this.localRealAim.value.z,
-                this.aimLag); */
-        this.zNextRotation += this.localRealAim.value.z;
+    public mixAim(aim: BABYLON.Vector3): void {
+        this.setImmediateAim(Realm.calculateVectorLag(this.aim, aim, 1));
+    }
+
+
+    public setRoll(roll: number): void {
+        if (Math.abs(roll) < 5) {
+            roll = 0;
+        }
+
+        this.zNextRotation = 1.7 * roll;
+
+        if (this.zNextRotation > Math.PI * 0.4) {
+            this.zNextRotation = Math.PI * 0.4;
+        }
+
+        if (this.zNextRotation < -Math.PI * 0.4) {
+            this.zNextRotation = -Math.PI * 0.4;
+        }
     }
 
 
     public onRender(): void {
         if (this.pilot) {
             this.pilot.think();
-
         }
 
         this.localRealAim.onRender();
@@ -116,15 +132,15 @@ export class StarShip extends BABYLON.Mesh implements IObject {
         this.rotation = Realm.rotationFromDirection(this.direction);
 
         if (!this.aimResolve) {
+            this.zRotation = Realm.calculateLag(this.zRotation, this.zNextRotation, 20);
+            this.zNextRotation = Realm.calculateLag(this.zNextRotation, 0, 5);
+            this.ship.rotation.x = Realm.calculateLag(this.ship.rotation.x, Math.PI + this.zRotation, 10);
+
             if (this.rotation.z > 0) {
                 this.rotation.z = 0.5 * Math.PI;
             } else {
                 this.rotation.z = -0.5 * Math.PI;
             }
-
-            this.zRotation = Realm.calculateLag(this.zRotation, this.zNextRotation, 4 * this.aimLag);
-            this.zNextRotation = Realm.calculateLag(this.zNextRotation, 0, this.aimLag);
-            this.rotation.z -= 3 * this.zRotation;
         }
 
         this.direction.scaleInPlace(this.speed * Realm.animModifier);
