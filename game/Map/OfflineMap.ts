@@ -119,6 +119,10 @@ export class Random {
         return new BABYLON.Vector2(this.number, this.number);
     }
 
+    public get boolean(): boolean {
+        return this.number < 0.5;
+    }
+
 
     public random(): number {
         return this.number;

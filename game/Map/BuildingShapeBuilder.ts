@@ -10,6 +10,7 @@ import {
     WallBuilder, BlankBuilder, BlankWallBuilder, VerticalWindowBuilder,
     HorizontalWindowBuilder
 } from "./WallBuilder";
+import {RoofBuilder, SquareRoofBuilder} from "./RoofBuilder";
 
 
 declare const Realm: RealmClass;
@@ -37,17 +38,25 @@ export abstract class BuildingShapeBuilder extends Builder {
 
         builder.buildWall(nearBottom, nearTop, farTop, farBottom);
     }
+
+    public abstract buildRoof(): void;
 }
 
 
 export class RectangularBuildingShapeBuilder extends BuildingShapeBuilder {
-    public xParam: number = this.random.range(
+    public xParam: number = this.args['xParam'] || this.random.range(
             this.args['minXParam'] || 15, this.args['maxXParam'] || 25, false);
-    public zParam: number = this.random.range(
+    public zParam: number = this.args['zParam'] || this.random.range(
             this.args['minZParam'] || 15, this.args['maxZParam'] || 25, false);
 
 
     public build(index: number): void {
+        if (this.xParam < this.zParam) {
+            const b = this.xParam;
+            this.xParam = this.zParam;
+            this.zParam = b;
+        }
+
         const builders: any[] = [BlankBuilder, BlankWallBuilder, VerticalWindowBuilder,
                 HorizontalWindowBuilder];
 
@@ -86,12 +95,12 @@ export class RectangularBuildingShapeBuilder extends BuildingShapeBuilder {
         };
 
 
-        if (index < this.args['floors'] - this.random.range(2, 6)) {
+        if (index < this.args['floors'] - this.random.range(3, 6) && index > this.random.range(2, 6)) {
             makePattern(x1Pattern, xTiles);
             makePattern(z1Pattern, zTiles);
             makePattern(x2Pattern, xTiles);
             makePattern(z2Pattern, zTiles);
-        } else if (index === this.args['floors'] - 1) {
+        } else if (index === this.args['floors'] - 1 || index === 0) {
             const blank: BlankBuilder = new BlankBuilder(this.random, this.darks, this.lights, this.args);
 
             makePattern(x1Pattern, xTiles, () => blank);
@@ -146,12 +155,28 @@ export class RectangularBuildingShapeBuilder extends BuildingShapeBuilder {
                     order[0].add(order[1]));
         });
     }
+
+
+    public buildRoof(): void {
+        const roofs = [SquareRoofBuilder];
+        const roof: RoofBuilder = new (this.random.choose(roofs))(this.random, this.darks, this.lights,
+                this.args);
+
+        const leftStart: Vector3 = new Vector3(-this.xParam, this.args['floors'] * this.floorHeight,
+                -this.zParam);
+        const topStart: Vector3 = leftStart.add(new Vector3(2 * this.xParam, 0, 0));
+        const rightStart: Vector3 = topStart.add(new Vector3(0, 0, 2 * this.zParam));
+        const bottomStart: Vector3 = rightStart.add(new Vector3(-2 * this.xParam, 0, 0));
+
+        roof.buildRoof([leftStart, topStart, rightStart, bottomStart]);
+    }
+
 }
 
 
 export class SquareBuildingShapeBuilder extends RectangularBuildingShapeBuilder {
     public build(index: number): void {
-        this.xParam = this.zParam;
+        // this.xParam = this.zParam;
 
         super.build(index);
     }
@@ -162,11 +187,19 @@ export class HexagonBuildingShapeBuilder extends BuildingShapeBuilder {
     public build(index: number): void {
 
     }
+
+    public buildRoof(): void {
+
+    }
 }
 
 
 export class Complex1BuildingShapeBuilder extends BuildingShapeBuilder {
     public build(index: number): void {
+
+    }
+
+    public  buildRoof(): void {
 
     }
 }

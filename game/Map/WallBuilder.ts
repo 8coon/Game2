@@ -1,7 +1,5 @@
 import BABYLON from "../../static/babylon";
 import {RealmClass} from "../Realm/Realm";
-import {IObject} from "../ObjectFactory/ObjectFactory";
-import {Random} from "./OfflineMap";
 import Vector2 = BABYLON.Vector2;
 import Vector3 = BABYLON.Vector3;
 import Matrix = BABYLON.Matrix;
@@ -23,6 +21,29 @@ export abstract class WallBuilder extends Builder {
     public build(index: number): void {};
     public abstract buildWall(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
                               rightBottom: Vector3): void;
+
+
+    protected buildTriangle(leftBottom, leftTop, rightTop, color: Color4 = this.wallLightColor,
+                            toLights: boolean = false) {
+        const normal: Vector3 = Vector3.Cross(
+            rightTop.subtract(leftTop), leftBottom.subtract(leftTop)
+        ).normalize();
+
+        const positions: number[] = toLights ? <number[]> this.lights.positions : this.positions;
+        const normals: number[] = toLights ? <number[]> this.lights.normals : this.normals;
+
+        this.concatVector(positions, leftBottom);
+        this.concatVector(positions, leftTop);
+        this.concatVector(positions, rightTop);
+
+        for (let i = 0; i < 3; i++) {
+            this.concatVector(normals, normal);
+            this.concatColor(color, toLights);
+        }
+
+        this.concatIndices([2, 1, 0], 3, toLights);
+    }
+
 
     protected buildSurface(leftBottom: Vector3, leftTop: Vector3, rightTop: Vector3,
                            rightBottom: Vector3, color: Color4 = this.wallLightColor,

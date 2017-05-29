@@ -50,6 +50,14 @@ export abstract class Builder {
         arr.push(v.x, v.y, v.z);
     }
 
+    public concatPositions(v: Vector3, lights: boolean = false): void {
+        this.concatVector(lights ? <number[]> this.lights.positions : this.positions, v);
+    }
+
+    public concatNormals(v: Vector3, lights: boolean = false): void {
+        this.concatVector(lights ? <number[]> this.lights.normals : this.normals, v);
+    }
+
     public concatIndices(arr: number[], offset: number, lights: boolean = false): void {
         if (lights) {
             this.lights.indices['_offset'] = this.lights.indices['_offset'] || 0;

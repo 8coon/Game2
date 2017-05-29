@@ -56,18 +56,19 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
 
     public darksMesh: BABYLON.Mesh;
     public lightsMesh: BABYLON.Mesh;
+    public height: number;
 
     public random: Random;
 
 
     constructor(random: Random, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh,
-                isSmall: boolean) {
+                isSmall: boolean, args: object) {
         super(name, scene, parent);
         this.random = random;
         this.isSmall = isSmall;
 
-        this.floors = this.random.range(30, 50);
-        const args: object = { floors: this.floors };
+        this.floors = this.random.range(30, 40);
+        args['floors'] = this.floors;
 
         let shapes: any[] = [RectangularBuildingShapeBuilder, SquareBuildingShapeBuilder];
 
@@ -89,6 +90,7 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
         }
 
         this.buildRoof();
+        this.height = args['height'];
 
 
         this.darksMesh = new BABYLON.Mesh('darks', scene);
@@ -115,7 +117,7 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
 
 
     private buildRoof(): void {
-
+        this.shape.buildRoof();
     }
 
 }
@@ -126,14 +128,30 @@ export class Building extends BABYLON.Mesh implements IObject {
     public mesh: BABYLON.Mesh;
     public random: Random;
 
-    public scaffold: BuildingSectionScaffold;
+    public lowerScaffold: BuildingSectionScaffold;
+    public upperScaffold: BuildingSectionScaffold;
+    public isSmall: boolean;
+    public args: object = {};
 
 
     constructor(seed: number, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh) {
         super(name, scene, parent);
         this.random = new Random(seed);
+        this.isSmall = this.random.boolean;
 
-        this.scaffold = new BuildingSectionScaffold(this.random, 'scaffold', scene, this, true);
+        if (this.isSmall) {
+            this.lowerScaffold = new BuildingSectionScaffold(this.random, 'lowerScaffold', scene, this,
+                    true, this.args);
+        } else {
+            this.lowerScaffold = new BuildingSectionScaffold(this.random, 'lowerScaffold', scene, this,
+                    false, this.args);
+
+            const upperPos: Vector3 = this.args['nextPosition'];
+            this.upperScaffold = new BuildingSectionScaffold(this.random, 'upperScaffold', scene, this,
+                    true, this.args);
+            this.upperScaffold.position = upperPos;
+        }
+
     }
 
 
