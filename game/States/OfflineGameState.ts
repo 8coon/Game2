@@ -47,8 +47,9 @@ export class OfflineGameState extends RealmState {
         const building: Building = <Building> Realm.objects.grab('testBuilding');
         building.position.x = -100;
         building.position.y = -25;
+        building.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3);
 
-        // (<HumanPilot> this.offlinePlayer.pilot).grabShip();
+        //(<HumanPilot> this.offlinePlayer.pilot).grabShip();
     }
 
 

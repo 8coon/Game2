@@ -20,6 +20,7 @@ export class RealmClass {
     public camera: Camera;
     public objects: ObjectFactory;
     public sky: RealmSky;
+    public fx: BABYLON.HDRRenderingPipeline;
 
     public fps: number = 0;
     public timeDelta: number = 0;
@@ -46,6 +47,8 @@ export class RealmClass {
         this.camera = new Camera('camera', this.scene);
         this.objects = new ObjectFactory();
         this.meshesLoader = new Loader();
+
+        this.scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
         this.canvas.addEventListener('click', () => {
             if (!this.pointerLocked) {
@@ -78,6 +81,7 @@ export class RealmClass {
         this.loadStates();
         this.objects.load();
         this.scene.load();
+        this.initFX();
 
         this.meshesLoader.load().then(() => {
             this.notifyLoaded();
@@ -126,6 +130,21 @@ export class RealmClass {
         }); /* .catch((error: string) => {
             console.error(`Failed to load resource: ${error}`);
         }); */
+    }
+
+
+    private initFX(): void {
+        this.fx = new BABYLON.HDRRenderingPipeline(
+            'standard',
+            this.scene,
+            1.0,
+            null,
+            [this.camera.camera],
+        );
+
+        //this.fx.brightThreshold = 0.7;
+        //this.fx.exposure = 1.2;
+        //(<any> this.fx).HDREnabled = true;
     }
 
 
