@@ -29,6 +29,7 @@ export class ObjectFactory {
 
     public objects: Map<string, Allocated> = new Map<string, Allocated>();
     public objectFactories: Map<string, IObjectProto> = new Map<string, IObjectProto>();
+    public logging: boolean = false;
 
 
     public addObject(name: string, amount: number, factory: TFactory): void {
@@ -84,6 +85,10 @@ export class ObjectFactory {
 
 
     public grab(name: string): IObject {
+        if (this.logging) {
+            console.log('Grabbing', name);
+        }
+
         const alloc: Allocated = this.objects.get(name);
 
         if (alloc.free.length === 0) {
@@ -98,12 +103,43 @@ export class ObjectFactory {
     }
 
 
-    public free(name: string, object: IObject) {
+    public free(name: string, object: IObject): void {
+        if (this.logging) {
+            console.log('Freeing', name);
+        }
+
         const alloc: Allocated = this.objects.get(name);
+
+        if (!alloc) {
+            return;
+        }
 
         object.onFree();
         object['_free'] = true;
         alloc.free.push(object);
+    }
+
+
+    public freeAll(name: string): void {
+        if (this.logging) {
+            console.log('Freeing all of', name);
+        }
+
+        const alloc: Allocated = this.objects.get(name);
+
+        if (!alloc) {
+            return;
+        }
+
+        alloc.objects.forEach((object: IObject) => {
+            this.free(name, object);
+        });
+    }
+
+
+    public hasFree(name: string): boolean {
+        const alloc: Allocated = this.objects.get(name);
+        return alloc && alloc.free.length > 0;
     }
 
 }

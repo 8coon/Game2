@@ -18,7 +18,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public pilot: Pilot;
 
     public speed: number = 0;
-    public maxSpeed: number = 0.07 * 2;
+    public maxSpeed: number = 0.07 * 3;
     public aimLag: number = 20;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
@@ -29,6 +29,16 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private zRotation: number = 0;
     private zNextRotation: number = 0;
+    private aimResolve;
+    private hasLight: boolean;
+
+
+    constructor(name: string, scene: BABYLON.Scene, hasLight: boolean = true) {
+        super(name, scene);
+        this.hasLight = hasLight;
+
+        Realm.meshesLoader.queue(this.modelName, '/static/models/', 'spaceship.obj');
+    }
 
 
     public get aim(): BABYLON.Vector3 {
@@ -43,32 +53,25 @@ export class StarShip extends BABYLON.Mesh implements IObject {
                 Animation.LINEAR);
     }
 
-    private aimResolve;
-
-
-    constructor(name: string, scene: BABYLON.Scene) {
-        super(name, scene);
-
-        Realm.meshesLoader.queue(this.modelName, '/static/models/', 'spaceship.obj');
-    }
-
 
     public onLoad(): void {
         this.ship = Realm.meshesLoader.retrieve(this.modelName).clone('ship');
         this.ship.parent = this;
-        this.ship.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
+        this.ship.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3);
         this.ship.rotation = new BABYLON.Vector3(Math.PI, 0.5 * Math.PI, 0.5 * Math.PI);
         this.ship.setEnabled(true);
 
-        this.light = new BABYLON.HemisphericLight(
-            'light',
-            new BABYLON.Vector3(0, 5, 1),
-            this.getScene(),
-        );
+        if (this.hasLight) {
+            this.light = new BABYLON.HemisphericLight(
+                'light',
+                new BABYLON.Vector3(0, 5, 1),
+                this.getScene(),
+            );
 
-        this.light.parent = this;
-        this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
-        this.light.intensity = 0.3;
+            this.light.parent = this;
+            this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
+            this.light.intensity = 0.9;
+        }
     }
 
 

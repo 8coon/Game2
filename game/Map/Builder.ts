@@ -1,11 +1,11 @@
 import BABYLON from "../../static/babylon";
 import {RealmClass} from "../Realm/Realm";
-import {Random} from "./OfflineMap";
 import Vector2 = BABYLON.Vector2;
 import Vector3 = BABYLON.Vector3;
 import Matrix = BABYLON.Matrix;
 import Color4 = BABYLON.Color4;
 import StandardMaterial = BABYLON.StandardMaterial;
+import {Random} from "../Utils/Random";
 
 
 declare const Realm: RealmClass;

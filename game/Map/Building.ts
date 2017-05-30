@@ -1,7 +1,6 @@
 import BABYLON from "../../static/babylon";
 import {RealmClass} from "../Realm/Realm";
 import {IObject} from "../ObjectFactory/ObjectFactory";
-import {Random} from "./OfflineMap";
 import Vector2 = BABYLON.Vector2;
 import Vector3 = BABYLON.Vector3;
 import Matrix = BABYLON.Matrix;
@@ -11,6 +10,7 @@ import {
     BuildingShapeBuilder, RectangularBuildingShapeBuilder,
     SquareBuildingShapeBuilder, HexagonBuildingShapeBuilder, Complex1BuildingShapeBuilder
 } from "./BuildingShapeBuilder";
+import {Random} from "../Utils/Random";
 
 
 declare const Realm: RealmClass;
