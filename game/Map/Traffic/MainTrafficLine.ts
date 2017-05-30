@@ -27,7 +27,6 @@ export class MainTrafficLine extends TrafficLine implements IObject{
         super.onRender();
     }
 
-
     public onGrab(): void {
         this.reposition();
     }

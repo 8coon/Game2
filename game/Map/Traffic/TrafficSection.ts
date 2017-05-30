@@ -63,7 +63,7 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
     }
 
     public onGrab(): void {
@@ -72,6 +72,10 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
 
     public onFree(): void {
         this.isVisible = false;
+    }
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
     public onRender(): void {

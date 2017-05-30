@@ -155,7 +155,7 @@ export class Building extends BABYLON.Mesh implements IObject {
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
     }
 
     public onGrab(): void {
@@ -166,6 +166,10 @@ export class Building extends BABYLON.Mesh implements IObject {
 
     public onRender(): void {
         this.rotation.y += 0.01;
+    }
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
 

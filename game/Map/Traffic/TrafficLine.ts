@@ -69,7 +69,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
     }
 
 
@@ -123,6 +123,11 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         this.sections = [];
         this.vectors = [];
         this.shipsConnected = [];
+    }
+
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
 

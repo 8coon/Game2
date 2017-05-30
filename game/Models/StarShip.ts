@@ -54,7 +54,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
         this.ship = Realm.meshesLoader.retrieve(this.modelName).clone('ship');
         this.ship.parent = this;
         this.ship.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3);
@@ -162,6 +162,10 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
     public onFree(): void {
         this.setEnabled(false);
+    }
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
 }

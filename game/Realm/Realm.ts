@@ -79,58 +79,40 @@ export class RealmClass {
     public init(): void {
         this.sky = new RealmSky('sky', this.scene);
         this.loadStates();
-        this.objects.load();
-        this.scene.load();
-        this.initFX();
 
-        this.meshesLoader.load().then(() => {
-            this.notifyLoaded();
-            let oldMillis: number = RealmClass.now();
+        this.objects.load().then(() => {
+            this.scene.load();
+            this.initFX();
 
-            this.scene.meshes.forEach((mesh: BABYLON.Mesh) => {
-                if (mesh['__skybox__']) {
-                    mesh.renderingGroupId = 0;
-                    return;
-                }
+            this.meshesLoader.load().then(() => {
+                this.notifyLoaded();
+                let oldMillis: number = RealmClass.now();
 
-                mesh.renderingGroupId = 1;
+                this.scene.meshes.forEach((mesh: BABYLON.Mesh) => {
+                    if (mesh['__skybox__']) {
+                        mesh.renderingGroupId = 0;
+                        return;
+                    }
+
+                    mesh.renderingGroupId = 1;
+                });
+
+                this.engine.runRenderLoop(() => {
+                    const newMillis: number = RealmClass.now();
+
+                    this.timeDelta = newMillis - oldMillis;
+                    // this.animModifier = this.timeDelta / (1000 / 60);
+                    this.animModifier = 1;
+                    this.fps = Math.floor(60 / (this.timeDelta / (1000 / 60)));
+                    this.render();
+
+                    oldMillis = newMillis;
+                    document.title = `FPS: ${this.fps}`;
+                });
+
+                this.changeState('offlineGame');
             });
-
-            this.engine.runRenderLoop(() => {
-                const newMillis: number = RealmClass.now();
-
-                this.timeDelta = newMillis - oldMillis;
-                // this.animModifier = this.timeDelta / (1000 / 60);
-                this.animModifier = 1;
-                this.fps = Math.floor(60 / (this.timeDelta / (1000 / 60)));
-                this.render();
-
-                oldMillis = newMillis;
-                document.title = `FPS: ${this.fps}`;
-            });
-
-            this.changeState('offlineGame');
-            //this.changeState('second');
-
-            //starShip.position.x = -5;
-            // starShip.onMeshesLoaded();
-
-            /*let i = 0;
-            window.setInterval(() => {
-                this.changeState(['first', 'second', 'third'][i]);
-                i++;
-
-                if (i > 2) {
-                    i = 0;
-                }
-            }, 2000);
-
-            window.setInterval(() => {
-                this.camera.explosionAnimate(0.8, 1900);
-            }, 2000);*/
-        }); /* .catch((error: string) => {
-            console.error(`Failed to load resource: ${error}`);
-        }); */
+        });
     }
 
 

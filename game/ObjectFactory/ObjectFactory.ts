@@ -1,10 +1,11 @@
 
 
 export interface IObject {
-    onLoad(): void;
+    onCreate(): void;
     onGrab(): void;
     onFree(): void;
     onRender(): void;
+    onDelete(): void;
 }
 
 
@@ -14,13 +15,14 @@ class Allocated {
 }
 
 
-export type TFactory = () => IObject;
+export type TFactory = (index?: number) => IObject;
 
 
 interface IObjectProto {
     name: string;
     amount: number;
     factory: TFactory;
+    created: boolean;
 }
 
 
@@ -33,7 +35,7 @@ export class ObjectFactory {
 
 
     public addObject(name: string, amount: number, factory: TFactory): void {
-        this.objectFactories.set(name, {name, amount, factory});
+        this.objectFactories.set(name, {name, amount, factory, created: false});
     }
 
 
@@ -49,25 +51,40 @@ export class ObjectFactory {
     }
 
 
-    public load(): void {
+    public load(): Promise<any> {
+        const promises: Promise<any>[] = [];
+        console.log(this.objectFactories.size);
+
         this.objectFactories.forEach((objectProto: IObjectProto, name: string) => {
             this.objects.set(name, new Allocated());
 
             for (let i = 0; i < objectProto.amount; i++) {
-                const object: IObject = objectProto.factory();
-                (<any> object).renderingGroupId = 1;
+                this.objectFactories.delete(name);
 
-                this.objects.get(name).objects.push(object);
-                this.free(name, object);
+                promises.push(new Promise<any>((res) => {
+                    window.setTimeout(() => {
+                        const object: IObject = objectProto.factory(i);
+                        (<any> object).renderingGroupId = 1;
+
+                        this.objects.get(name).objects.push(object);
+                        this.free(name, object);
+
+                        this.load().then(() => {
+                            res();
+                        });
+                    }, 1);
+                }));
             }
         });
+
+        return Promise.all(promises);
     }
 
 
     public notifyLoaded(): void {
         this.objects.forEach((allocated: Allocated) => {
             allocated.objects.forEach((object: IObject) => {
-                object.onLoad();
+                object.onCreate();
             });
         });
     }
@@ -110,7 +127,7 @@ export class ObjectFactory {
 
         const alloc: Allocated = this.objects.get(name);
 
-        if (!alloc) {
+        if (!alloc || !object) {
             return;
         }
 
@@ -140,6 +157,19 @@ export class ObjectFactory {
     public hasFree(name: string): boolean {
         const alloc: Allocated = this.objects.get(name);
         return alloc && alloc.free.length > 0;
+    }
+
+
+    public replaceFreeObject(name: string, newObject: IObject): void {
+        const alloc: Allocated = this.objects.get(name);
+
+        if (!alloc || alloc.free.length === 0) {
+            return;
+        }
+
+        alloc.free.pop().onDelete();
+        alloc.free.push(newObject);
+        newObject.onCreate();
     }
 
 }

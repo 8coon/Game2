@@ -7,6 +7,7 @@ import {TrafficLine} from "./Traffic/TrafficLine";
 import {MainTrafficLine} from "./Traffic/MainTrafficLine";
 import {StarShip} from "../Models/StarShip";
 import {NPCStarShip} from "../Models/NPCStarShip";
+import {Building} from "./Building";
 
 
 declare const Realm: RealmClass;
@@ -19,6 +20,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     public trafficLineCount: number = 4;
     public mainTrafficLine: MainTrafficLine;
     public NPCName: string;
+    public buildingName: string;
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, random: Random) {
@@ -39,10 +41,28 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         Realm.objects.addObject(this.NPCName, 100, (): IObject => {
             return new NPCStarShip(this.NPCName, scene);
         });
+
+        const seedMapping: number[] = [];
+        const buildingsBufferSize: number = 100;
+
+        for (let i = 0; i < buildingsBufferSize; i++) {
+            seedMapping.push(this.random.range(-1000000, 1000000));
+        }
+
+        Realm.objects.addObject(this.buildingName, buildingsBufferSize, (i: number): IObject => {
+            const building: Building = new Building(seedMapping[i], this.buildingName, scene, undefined);
+            building.setEnabled(false);
+
+            return building;
+        });
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
+    }
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
 
