@@ -21,9 +21,25 @@ export class LoginController extends AbstractController {
 
 
     public onCreate(): void {
+
+    }
+
+
+    public onNavigate(args: object): void {
+        console.log("я зашел1");
+
+        super.onNavigate(args);
+
+        CurrentUserHelper.currentUser.then((user: UserModel) => {
+            if (user.loggedIn()) {
+                user.logout();
+            }
+        });
+
         this.form = <FormForElement> this.view.DOMRoot.querySelector('#LoginForm');
 
         this.form.submitCallback = (): Promise<any> => {
+            console.log("я зашел");
             return (<UserModel> this.form.model)
                 .signin()
                 .then(result => {
@@ -33,7 +49,7 @@ export class LoginController extends AbstractController {
 
                     window.setTimeout(() => {
                         JSWorks.applicationContext.router.navigate(
-                            JSWorks.applicationContext.routeHolder.getRoute('MainRoute'),
+                            JSWorks.applicationContext.routeHolder.getRoute('MenuRoute'),
                             {},
                         )
                     });
@@ -42,20 +58,8 @@ export class LoginController extends AbstractController {
                     this.component.error = err;
                     this.form.model = JSWorks.applicationContext.modelHolder.getModel('UserModel').from();
                 })
-        }
-    }
+        };
 
-
-    public onNavigate(args: object): void {
-        super.onNavigate(args);
-
-        CurrentUserHelper.currentUser.then((user: UserModel) => {
-            if (user.loggedIn()) {
-                user.logout();
-            }
-        });
-
-        this.onCreate();
         this.component.loginOrEmail = undefined;
 
         if (args[':email']) {

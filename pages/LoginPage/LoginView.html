@@ -6,14 +6,26 @@
             <form>
 
                 <div class="group">
-                    <input type="email" placeholder="Логин или email"></span><span class="bar"></span>
+                    <form-field for="email">
+                        <input type="email" placeholder="Логин или email" form-bind-attribute="value">
+                        <span class="bar"></span>
+                        <form-messages>
+                            <view-eval value="error.text"></view-eval>
+                        </form-messages>
+                    </form-field>
                 </div>
 
                 <div class="group">
-                    <input type="password" placeholder="пароль"></span><span class="bar"></span>
+                    <form-field for="password">
+                        <input type="password" placeholder="пароль" form-bind-attribute="value">
+                        <span class="bar"></span>
+                        <form-messages>
+                            <view-eval value="error.text"></view-eval>
+                        </form-messages>
+                    </form-field>
                 </div>
 
-                <button type="button" class="button buttonOrange">Войти</button>
+                <button type="submit" form-submit="true" class="button buttonOrange" >Войти</button>
             </form>
         </form-for>
     </div>

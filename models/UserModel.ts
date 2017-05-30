@@ -30,7 +30,8 @@ export class UserModel implements UserModelFields, IModel {
 
     public current(): Promise<UserModel> {
         return new Promise<UserModel>((resolve, reject) => {
-            (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] + '/session/current',
+            (<IModel> this).jsonParser.parseURLAsync(
+                JSWorks.config['backendURL'] + '/session/current',
                 JSWorks.HTTPMethod.GET,
             ).then((data) => {
                 if (!data['status']) {
@@ -61,6 +62,7 @@ export class UserModel implements UserModelFields, IModel {
     }
 
     public signin(): Promise<UserModel> {
+        console.dir(this);
         return new Promise<UserModel>((resolve, reject) => {
             (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] + '/session/login',
                 JSWorks.HTTPMethod.POST,
@@ -115,7 +117,7 @@ export class UserModel implements UserModelFields, IModel {
     public logout(): Promise<UserModel> {
         return new Promise<UserModel>((resolve, reject) => {
             (<IModel> this).jsonParser.parseURLAsync(
-                JSWorks.config['backendURL'] + '/session/logout',
+                JSWorks.config['backendURL'] + 'session/logout',
                 JSWorks.HTTPMethod.POST,
                 JSON.stringify((<IModel> this).gist()),
                 { 'Content-Type': 'application/json' },
