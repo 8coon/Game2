@@ -61,5 +61,6 @@ export class LoginController extends AbstractController {
         };
 
         this.component.loginOrEmail = undefined;
+
     }
 }
