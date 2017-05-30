@@ -15,15 +15,17 @@ export class SignUpController extends AbstractController {
 
 
     public onCreate(): void {
+        console.log("я зашел2");
         this.form = <FormForElement> this.view.DOMRoot.querySelector('#SignUpForm');
 
         this.form.onSuccess = (form: FormForElement, data: object): boolean => {
             this.form.clear();
+            console.log(data, "kekekekekekeke");
 
             window.setTimeout(() => {
                 JSWorks.applicationContext.router.navigate(
                     JSWorks.applicationContext.routeHolder.getRoute('LoginRoute'),
-                    { [':email']: data['email'] },
+                    {},
                 )
             }, 10);
 

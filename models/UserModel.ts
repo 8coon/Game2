@@ -28,6 +28,24 @@ export class UserModel implements UserModelFields, IModel {
     @JSWorks.ModelField
     password: string;
 
+    constructor() {}
+
+    @JSWorks.ModelCreateMethod
+    public create(): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(
+                JSWorks.config['backendURL'] + `/user/create`,
+                JSWorks.HTTPMethod.POST,
+                JSON.stringify((<IModel> this).gist()),
+                { 'Content-Type': 'application/json' },
+            ).then((data) => {
+                resolve(<UserModel> (<IModel> this).from(data));
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
     public current(): Promise<UserModel> {
         return new Promise<UserModel>((resolve, reject) => {
             (<IModel> this).jsonParser.parseURLAsync(
@@ -46,21 +64,6 @@ export class UserModel implements UserModelFields, IModel {
     }
 
 
-    public create(): Promise<UserModel> {
-        return new Promise<UserModel>((resolve, reject) => {
-            (<IModel> this).jsonParser.parseURLAsync(
-                JSWorks.config['backendURL'] + `/user/create`,
-                JSWorks.HTTPMethod.POST,
-                JSON.stringify((<IModel> this).gist()),
-                { 'Content-Type': 'application/json' },
-            ).then((data) => {
-                resolve(<UserModel> (<IModel> this).from(data));
-            }).catch((err) => {
-                reject(err);
-            });
-        });
-    }
-
     public signin(): Promise<UserModel> {
         console.dir(this);
         return new Promise<UserModel>((resolve, reject) => {
@@ -69,7 +72,7 @@ export class UserModel implements UserModelFields, IModel {
                 JSON.stringify({ login_or_email: this.email, password: this.password }),
                 { 'Content-Type': 'application/json' },
             ).then((data) => {
-                if (data['error']) {
+                if (data['status'] !== -1) {
                     reject(data['error']);
                     return;
                 }
@@ -125,6 +128,22 @@ export class UserModel implements UserModelFields, IModel {
                 resolve();
             }).catch((err) => {
                 resolve();
+            });
+        });
+    }
+
+    @JSWorks.ModelDeleteMethod
+    public ['delete'](): Promise<UserModel> {
+        return new Promise<UserModel>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] +
+                `/user/delete`,
+                JSWorks.HTTPMethod.POST,
+                JSON.stringify({ id: this.id }),
+                { 'Content-Type': 'application/json' },
+            ).then((data) => {
+                resolve(this);
+            }).catch((err) => {
+                reject(err);
             });
         });
     }

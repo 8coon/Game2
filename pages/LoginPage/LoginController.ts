@@ -26,7 +26,7 @@ export class LoginController extends AbstractController {
 
 
     public onNavigate(args: object): void {
-        console.log("я зашел1");
+
 
         super.onNavigate(args);
 
@@ -61,17 +61,5 @@ export class LoginController extends AbstractController {
         };
 
         this.component.loginOrEmail = undefined;
-
-        if (args[':email']) {
-            this.component.loginOrEmail = args[':email'];
-
-            this.form.fields.forEach((field: FormFieldElement) => {
-                if (field.getAttribute('for') !=='email') {
-                    return;
-                }
-
-                field.value = args[':email'];
-            })
-        }
     }
 }

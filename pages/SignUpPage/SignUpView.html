@@ -1,13 +1,53 @@
 <app-view id="SignUpView" extends="BaseView">
-    <h1>Регистрация нового пользователя</h1>
-    <hr>
 
-    <form-for model="UserModel" id="SignUpForm">
-        <form>
+    <div class="container">
+        <form-for model="UserModel" id="SignUpForm">
+            <form>
 
+                <div class="group">
+                    <form-field for="login" validates="LoginValidator">
+                        <input type="text" placeholder="Логин" form-bind-attribute="value">
+                        <span class="bar"></span>
+                        <form-messages>
+                            <view-eval value="error.text"></view-eval>
+                        </form-messages>
+                    </form-field>
+                </div>
 
+                <div class="group">
+                    <form-field for="email" validates="EmailValidator">
+                        <input type="email" placeholder="email" form-bind-attribute="value">
+                        <span class="bar"></span>
+                        <form-messages>
+                            <view-eval value="error.text"></view-eval>
+                        </form-messages>
+                    </form-field>
+                </div>
 
-        </form>
-    </form-for>
+                <div class="group">
+                    <form-field for="password" validates="PasswordsMatch1Validator">
+                        <input type="password" placeholder="пароль" form-bind-attribute="value">
+                        <span class="bar"></span>
+                        <form-messages>
+                            <view-eval value="error.text"></view-eval>
+                        </form-messages>
+                    </form-field>
+                </div>
+
+                <div class="group">
+                    <form-field validates="PasswordsMatch2Validator">
+                        <input type="password" placeholder="ещё раз" form-bind-attribute="value">
+                        <span class="bar"></span>
+                        <form-messages>
+                            <view-eval value="error.text"></view-eval>
+                        </form-messages>
+                    </form-field>
+                </div>
+
+                <button type="submit" form-submit="true" class="button buttonOrange" >Войти</button>
+
+            </form>
+        </form-for>
+    </div>
 
 </app-view>
