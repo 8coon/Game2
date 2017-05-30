@@ -12,7 +12,7 @@ export class AnimationAfterInterceptor {
 
     private duration: number = 0.4;
     private selector: string = `
-				app-view  form-for > form >
+				app-view  form-for > form > .form-group
 		`;
     private start: string = '-20%';
     private end: string = '0px';
@@ -23,7 +23,7 @@ export class AnimationAfterInterceptor {
     public intercept(args: object): Promise<any> {
 
         console.log(args);
-        // console.log([...(<any> args['prevPage']).view.DOMRoot.querySelectorAll(this.selector)]);
+        console.log([...(<any> args['nextPage']).view.DOMRoot.querySelectorAll(this.selector)]);
         let rows = [...(<any> args['nextPage']).view.DOMRoot.querySelectorAll(this.selector)];
 
         let step = 0.1;
@@ -43,13 +43,21 @@ export class AnimationAfterInterceptor {
             lastRow = row;
         });
 
-        window.setTimeout(() => {
-            rows.forEach(row => {
-                row.setStyleAttribute('left',this.end);
-                row.setStyleAttribute('opacity',this.opacityEnd);
-            });
-        }, 20);
 
-        return Promise.resolve("animation-end");
+        return new Promise((resolve, reject) => {
+            window.setTimeout(() => {
+                rows.forEach(row => {
+                    row.setStyleAttribute('left',this.end);
+                    row.setStyleAttribute('opacity',this.opacityEnd);
+                });
+
+                resolve();
+            }, 20);
+        }).then(rs => {
+            return Promise.resolve();
+        });
+
+
+
     }
 }

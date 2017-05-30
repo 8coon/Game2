@@ -42,7 +42,7 @@ export class RealmClass {
 
     constructor(canvasId: string) {
         this.canvas = <HTMLCanvasElement> document.querySelector(`#${canvasId}`);
-        this.initCanvas({width: 100, height: 100});
+        this.initCanvas({width: 10, height: 10});
         // this.engine = new BABYLON.Engine(this.canvas, true);
         this.engine.loadingScreen = new LoadingScreen('');
         this.scene = new RealmScene(this.engine);

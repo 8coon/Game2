@@ -4,8 +4,7 @@
     <div class="container">
         <form-for model="UserModel" id="LoginForm">
             <form>
-
-                <div class="group">
+                <div class="form-group">
                     <form-field for="email">
                         <input type="text" placeholder="Логин или email" form-bind-attribute="value">
                         <span class="bar"></span>
@@ -15,7 +14,7 @@
                     </form-field>
                 </div>
 
-                <div class="group">
+                <div class="form-group">
                     <form-field for="password">
                         <input type="password" placeholder="пароль" form-bind-attribute="value">
                         <span class="bar"></span>
@@ -25,7 +24,9 @@
                     </form-field>
                 </div>
 
-                <button type="submit" form-submit="true" class="button buttonOrange" >Войти</button>
+                <div class="form-group">
+                    <button type="submit" form-submit="true" class="button buttonOrange" >Войти</button>
+                </div>
             </form>
         </form-for>
     </div>

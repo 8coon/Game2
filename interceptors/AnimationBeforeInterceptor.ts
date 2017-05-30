@@ -12,7 +12,7 @@ export class AnimationBeforeInterceptor {
 
     private duration: number = 0.4;
     private selector: string = `
-				app-view  form-for > form >
+				app-view  form-for > form > .form-group
 		`;
     private start: string = '0';
     private end: string = '20%';
@@ -23,10 +23,11 @@ export class AnimationBeforeInterceptor {
     public intercept(args: object): Promise<any> {
 
         console.log(args);
-        // console.log([...(<any> args['nextPage']).view.DOMRoot.querySelectorAll(this.selector)]);
+
         if (!args['prevPage']) {
             return Promise.resolve();
         }
+        console.log([...(<any> args['prevPage']).view.DOMRoot.querySelectorAll(this.selector)]);
         let rows = [...(<any> args['prevPage']).view.DOMRoot.querySelectorAll(this.selector)];
 
         let step = 0.1;
@@ -36,7 +37,7 @@ export class AnimationBeforeInterceptor {
         rows.forEach(row => {
             row.setStyleAttribute("left", this.start);
             row.setStyleAttribute("opacity", this.opacityStart);
-            // console.log(row);
+            console.log(row);
             cur += step;
 
             row.setStyleAttribute('transition', `
@@ -46,16 +47,19 @@ export class AnimationBeforeInterceptor {
             lastRow = row;
         });
 
-        window.setTimeout(() => {
-            rows.forEach(row => {
-                row.setStyleAttribute('left',this.end);
-                row.setStyleAttribute('opacity',this.opacityEnd);
-            });
-        }, 20);
+        return new Promise((resolve, reject) => {
+            window.setTimeout(() => {
+                rows.forEach(row => {
+                    row.setStyleAttribute('left', this.end);
+                    row.setStyleAttribute('opacity', this.opacityEnd);
+                });
+                resolve();
+            }, 20);
+        }).then(res => {
+            args['nextPage'].view.DOMRoot.setStyleAttribute("opacity", "0");
+            return Promise.resolve();
+        });
 
-        args['nextPage'].view.DOMRoot.setStyleAttribute("opacity", "0");
-
-        return Promise.resolve();
     }
 }
 

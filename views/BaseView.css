@@ -47,14 +47,18 @@ form-messages {
     color: white;
 }
 
+
 form {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     width: 380px;
     margin-left: auto;
     margin-right: auto;
     padding: 3em 2em 2em 2em;
 }
 
-.group {
+.form-group {
     position: relative;
     margin-bottom: 25px;
 }
