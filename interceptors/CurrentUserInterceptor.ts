@@ -10,8 +10,10 @@ declare const JSWorks: JSWorksLib;
 export class CurrentUserInterceptor {
 
     public intercept(args: object): Promise<any> {
+        console.log("some", args);
         return new Promise<any>((resolve, reject) => {
             CurrentUserHelper.currentUser.then((user: UserModel) => {
+                console.log("interceptor", user);
                 if (!args['nextPage']) {
                     return;
                 }

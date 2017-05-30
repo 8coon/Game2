@@ -33,6 +33,7 @@
         "reflect-metadata": "0.1.10",
         "jsworks": "https://github.com/8coon/next",
         "babylonjs": "2.5",
-        "fast-simplex-noise": "3.2.0"
+        "fast-simplex-noise": "3.2.0",
+        "font-awesome": "4.7.0"
     }
 }

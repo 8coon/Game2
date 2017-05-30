@@ -1,5 +1,6 @@
 'use strict';
 import {JSWorksLib} from "jsworks/dist/dts/jsworks";
+import {UserModel} from "../../models/UserModel";
 
 
 declare const JSWorks: JSWorksLib;
@@ -19,6 +20,9 @@ export class MenuPage {
 
     @(<any> JSWorks.ComponentProperty({ mapping: '#h2@innerHTML' }))
     public testC: string;
+
+    @(<any> JSWorks.ComponentProperty())
+    public currentUser: UserModel;
 
 
 }

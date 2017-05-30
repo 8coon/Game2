@@ -1,0 +1,17 @@
+.menu-container {
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+}
+
+.menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding-bottom: 300px;
+}
+
+.menu__element {
+    /*margin-right: 30px;*/
+}

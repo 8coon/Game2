@@ -1,3 +1,25 @@
-<app-view id="MenuView">
+<app-view id="MenuView" extends="BaseView">
     <h1>It Works!</h1>
+
+
+    <div class="menu-container">
+
+        <div class="menu">
+
+            <div class="menu__element">
+
+                <link-to route="SinglePlayerRoute">Играть</link-to>
+
+            </div>
+
+            <div class="menu__element">
+
+                <link-to route="MultiplayerRoute">Сетевая игра</link-to>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </app-view>

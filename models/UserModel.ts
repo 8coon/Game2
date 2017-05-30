@@ -52,9 +52,11 @@ export class UserModel implements UserModelFields, IModel {
                 JSWorks.config['backendURL'] + '/session/current',
                 JSWorks.HTTPMethod.GET,
             ).then((data) => {
-                if (!data['status']) {
-                    (<IModel> this).apply(data);
-                }
+                console.log(data);
+                // if (!data['status']) {
+
+                // }
+                (<IModel> this).apply(data);
 
                 resolve(this);
             }).catch((err) => {
