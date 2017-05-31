@@ -22,7 +22,7 @@ export class MainTrafficLine extends TrafficLine implements IObject{
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineMap, random: Random) {
-        super(name, scene, parent, random, false, 101, 3, false);
+        super(name, scene, parent, random, false, 121, 4, false);
         this.hasNPCs = false;
     }
 

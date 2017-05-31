@@ -44,7 +44,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         });
 
         const seedMapping: number[] = [];
-        const buildingsBufferSize: number = 100;
+        const buildingsBufferSize: number = 60;
 
         for (let i = 0; i < buildingsBufferSize; i++) {
             seedMapping.push(this.random.range(-1000000, 1000000));
@@ -76,6 +76,13 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
             this.placeTrafficLine(trafficLine, i);
             this.trafficLines.push(trafficLine);
         }
+
+        for (let i = 0; i < this.mainTrafficLine.sectionCount * 2; i++) {
+            this.mainTrafficLine.generateNextSection();
+        }
+
+        this.getLeadingPlayer().position = this.mainTrafficLine.sections[
+                this.mainTrafficLine.sectionCount - 20].position.add(new BABYLON.Vector3(0, 1, 0));
     }
 
 
