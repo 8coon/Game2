@@ -1,6 +1,7 @@
 import {RealmClass} from "../game/Realm/Realm";
 import {JSWorksLib} from "jsworks/dist/dts/jsworks";
 import {SimpleVirtualDOMElement} from "jsworks/dist/dts/VirtualDOM/SimpleVirtualDOM/SimpleVirtualDOMElement";
+import {UserModel} from "../models/UserModel";
 
 
 declare let Realm: RealmClass;

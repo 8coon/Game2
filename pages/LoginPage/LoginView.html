@@ -1,5 +1,14 @@
 <app-view id="LoginView" extends="BaseView">
 
+    <div class="header">
+        <div class="header__left-container">
+            <div class="link-back">
+                <link-to route="MenuRoute">
+                    <i class="fa fa-chevron-left"></i>
+                </link-to>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <form-for model="UserModel" id="LoginForm">

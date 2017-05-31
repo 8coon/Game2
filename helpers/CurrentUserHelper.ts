@@ -16,7 +16,6 @@ export class CurrentUserHelper {
         if (!CurrentUserHelper._currentUser) {
             return new Promise<UserModel>((resolve, reject) => {
                 model.current().then((user: UserModel) => {
-                    console.log("helper", user);
                     CurrentUserHelper.currentUser = Promise.resolve(user);
                     resolve(user);
                 });

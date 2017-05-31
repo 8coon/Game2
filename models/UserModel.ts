@@ -27,8 +27,10 @@ export class UserModel implements UserModelFields, IModel {
 
     @JSWorks.ModelField
     password: string;
+    odaf: IModel;
 
     constructor() {}
+
 
     @JSWorks.ModelCreateMethod
     public create(): Promise<UserModel> {
@@ -53,11 +55,11 @@ export class UserModel implements UserModelFields, IModel {
                 JSWorks.HTTPMethod.GET,
             ).then((data) => {
                 console.log(data);
-                // if (!data['status']) {
-
-                // }
-                (<IModel> this).apply(data);
-
+                if (data['status'] === -1) {
+                    (<IModel> this).apply(data);
+                } else {
+                    resolve((<UserModel> (<IModel> this).from(data)));
+                }
                 resolve(this);
             }).catch((err) => {
                 resolve(this);
@@ -122,10 +124,8 @@ export class UserModel implements UserModelFields, IModel {
     public logout(): Promise<UserModel> {
         return new Promise<UserModel>((resolve, reject) => {
             (<IModel> this).jsonParser.parseURLAsync(
-                JSWorks.config['backendURL'] + 'session/logout',
-                JSWorks.HTTPMethod.POST,
-                JSON.stringify((<IModel> this).gist()),
-                { 'Content-Type': 'application/json' },
+                JSWorks.config['backendURL'] + '/session/logout',
+                JSWorks.HTTPMethod.POST
             ).then((data) => {
                 resolve();
             }).catch((err) => {
