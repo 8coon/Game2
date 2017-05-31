@@ -1,285 +1,144 @@
 import BABYLON from "../../static/babylon";
 import {RealmClass} from "../Realm/Realm";
 import {IObject} from "../ObjectFactory/ObjectFactory";
-import FastSimplexNoise from "../../node_modules/fast-simplex-noise/src";
 import {OfflineGameState} from "../States/OfflineGameState";
+import {Random} from "../Utils/Random";
+import {TrafficLine} from "./Traffic/TrafficLine";
+import {MainTrafficLine} from "./Traffic/MainTrafficLine";
 import {StarShip} from "../Models/StarShip";
+import {NPCStarShip} from "../Models/NPCStarShip";
+import {Building} from "./Building";
+import {MainTrafficSection} from "./Traffic/MainTrafficSection";
 
 
 declare const Realm: RealmClass;
 
 
-export class MapSection extends BABYLON.Mesh implements IObject {
-
-    public static readonly ACTIVE_COLOR: BABYLON.Color3 = new BABYLON.Color3(211/255, 42/255, 156/255);
-    public static readonly INACTIVE_COLOR: BABYLON.Color3 = new BABYLON.Color3(99/255, 43/255, 94/255);
-
-    public shape: BABYLON.Mesh;
-    public border: BABYLON.Mesh;
-    public length: number = 1;
-    public colorProgressStep: number = 0.3;
-    public colorProgress: number = 0;
-
-
-    constructor(name: string, scene: BABYLON.Scene, parent: OfflineMap) {
-        super(name, scene, parent);
-
-        const trueLength: number = this.length * 1.1;
-
-        this.shape = BABYLON.Mesh.CreateCylinder(
-            'shape',
-            trueLength,  // height
-            0.6, 0.6,  // diameterTop, diameterBottom
-            6,  // tessellation
-            1,  // subdivisions
-            scene,
-        );
-
-        this.shape.position.x = -this.length;
-        this.shape.rotation.z = 0.5 * Math.PI;
-        this.shape.material = new BABYLON.StandardMaterial('shapeMaterial', scene);
-        this.shape.parent = this;
-        (<any> this.shape.material).diffuseColor = MapSection.INACTIVE_COLOR;
-        (<any> this.shape.material).emissiveColor = MapSection.ACTIVE_COLOR;
-        (<any> this.shape.material).emissiveIntensity = 0.0;
-        (<any> this.shape.material).alpha = 0.9;
-    }
-
-
-    public afterSection(lastSection: MapSection, rotation: BABYLON.Vector3): void {
-        this.rotation = rotation;
-        this.position = lastSection.position.add(lastSection.getEndVector());
-
-        this.colorProgress = lastSection.colorProgress - lastSection.colorProgressStep;
-        if (this.colorProgress < 0) {
-            this.colorProgress = Math.PI;
-        }
-    }
-
-
-    public getEndVector(): BABYLON.Vector3 {
-        const matrix: BABYLON.Matrix = Realm.getTranslationMatrix(this, null, null, BABYLON.Vector3.Zero());
-        const vector: BABYLON.Vector3 = new BABYLON.Vector3(-this.length, 0, 0);
-
-        return BABYLON.Vector3.TransformCoordinates(vector, matrix);
-    }
-
-
-    public onLoad(): void {
-    }
-
-    public onGrab(): void {
-        this.isVisible = true;
-    }
-
-    public onFree(): void {
-        this.isVisible = false;
-    }
-
-    public onRender(): void {
-        let ratio: number = Math.sin(1.1 * this.colorProgress);
-        ratio = Math.round(ratio * 3) / 3;
-
-        (<any> this.shape.material).emissiveIntensity = ratio;
-        (<any> this.shape.material).alpha = 1 - ratio * 0.7;
-        (<any> this.shape.material).emissiveColor = Realm.mixColors(
-            MapSection.INACTIVE_COLOR,
-            MapSection.ACTIVE_COLOR,
-            ratio,
-        );
-
-        this.colorProgress += this.colorProgressStep;
-
-        if (this.colorProgress > Math.PI) {
-            this.colorProgress = 0;
-        }
-    }
-
-}
-
-
-export class Random {
-
-    public seed: number = Math.random() * 10000;
-
-    constructor(seed?: number) {
-        if (seed) {
-            this.seed = seed;
-        }
-    }
-
-    public get number(): number {
-        const x = Math.sin(this.seed) * 10000;
-        this.seed++;
-
-        return x - Math.floor(x);
-    }
-
-    public get Vector2(): BABYLON.Vector2 {
-        return new BABYLON.Vector2(this.number, this.number);
-    }
-
-    public get boolean(): boolean {
-        return this.number < 0.5;
-    }
-
-
-    public random(): number {
-        return this.number;
-    }
-
-    public range(start: number, end: number, int: boolean = true): number {
-        let floor = x => Math.floor(x);
-        if (!int) floor = x => x;
-
-        return start + floor(this.number * (end - start));
-    }
-
-    public choose(items: any[]): any {
-        if (items.length === 0) {
-            return undefined;
-        }
-
-        return items[Math.floor(this.number * items.length)];
-    }
-
-}
-
-
 export class OfflineMap extends BABYLON.Mesh implements IObject{
 
-    public seed: number;
-    public sections: MapSection[] = [];
-
-    private rand1: Random;
-    private rand2: Random;
-    private v1: BABYLON.Vector2;
-    private v2: BABYLON.Vector2;
-    private noise: FastSimplexNoise;
-    private lastSectionIndex: number = 0;
+    public random: Random;
+    public trafficLines: TrafficLine[] = [];
+    public trafficLineCount: number = 4;
+    public mainTrafficLine: MainTrafficLine;
+    public NPCName: string;
+    public buildingName: string = `${this.name}__building`;
 
 
-    constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, seed: number) {
+    constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, random: Random) {
         super(name, scene, parent);
-        this.seed = seed;
+        this.random = random;
+        this.NPCName = `${name}_NPC`;
+        let i = 0;
 
-        this.rand1 = new Random(seed);
-        this.rand2 = new Random(this.rand1.number);
-        this.v1 = this.rand1.Vector2.scale(10000);
-        this.v2 = this.rand2.Vector2.scale(10000);
-        this.noise = new FastSimplexNoise(this.rand2.number);
+        Realm.objects.addObject(`${name}_trafficLine`, this.trafficLineCount, (): IObject => {
+            return new TrafficLine(`${name}_${i++}_trafficLine`, scene, this, this.random, true,
+                    undefined, 3);
+        });
 
-        Realm.objects.addObjectIfNone(`${name}__mapSection`, 101, (): IObject => {
-            return new MapSection(`${name}__mapSection`, scene, this);
+        Realm.objects.addObject(`${name}_mainTrafficLine`, 1, (): IObject => {
+            return new MainTrafficLine(`${name}_mainTrafficLine`, scene, this, this.random);
+        });
+
+        Realm.objects.addObject(this.NPCName, 100, (): IObject => {
+            return new NPCStarShip(this.NPCName, scene);
+        });
+
+        const seedMapping: number[] = [];
+        const buildingsBufferSize: number = 100;
+
+        for (let i = 0; i < buildingsBufferSize; i++) {
+            seedMapping.push(this.random.range(-1000000, 1000000));
+        }
+
+        Realm.objects.addObject(this.buildingName, buildingsBufferSize, (i: number): IObject => {
+            const building: Building = new Building(seedMapping[i], this.buildingName, scene, undefined);
+            building.setEnabled(false);
+
+            return building;
         });
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
     }
 
+    public onDelete(): void {
+        this.dispose(true);
+    }
+
+
     public onGrab(): void {
-        this.testGenerate1();
+        this.mainTrafficLine = <MainTrafficLine> Realm.objects.grab(`${this.name}_mainTrafficLine`);
+
+        for (let i = 0; i < this.trafficLineCount; i++) {
+            const trafficLine: TrafficLine = <TrafficLine> Realm.objects.grab(`${this.name}_trafficLine`);
+
+            this.placeTrafficLine(trafficLine, i);
+            this.trafficLines.push(trafficLine);
+        }
+    }
+
+
+    protected placeTrafficLine(line: TrafficLine, index: number, secondary: boolean = false): void {
+        if (secondary && index < 2) {
+            index += 2;
+        }
+
+        const xDistCf: number = (index > 1) ? 1 : 0.5;
+        const length = this.mainTrafficLine.sections.length;
+        const sectionIndex: number = Math.floor(xDistCf * length) - (index % 2) * 3 - 3;
+        const position: BABYLON.Vector3 = this.mainTrafficLine.sections[sectionIndex].position;
+
+        line.position = position.subtract(new BABYLON.Vector3(0, 0, 0.5 * 145.455));
+        line.direction = index % 2 === 0 ? 1 : -1;
+        line.reposition();
+
+        for (let i = sectionIndex - 3; i < sectionIndex + 3; i++) {
+            if (this.mainTrafficLine.sections[i]) {
+                this.mainTrafficLine.sections[i].hasCrossingAttached = true;
+            }
+        }
+    }
+
+
+    public getLeadingPlayer(): StarShip {
+        return (<OfflineGameState> this.parent).getLeadingPlayer();
+    }
+
+
+    public getLeadingPlayerPos(): BABYLON.Vector3 {
+        return this.getLeadingPlayer().position;
     }
 
 
     public onFree(): void {
-        this.sections.forEach(section => Realm.objects.free(`${this.name}__mapSection`, section));
-        this.sections = [];
+        Realm.objects.freeAll(this.NPCName);
+        Realm.objects.free(`${this.name}_mainTrafficLine`, this.mainTrafficLine);
+        this.trafficLines.forEach((line, i) => Realm.objects.free(`${this.name}_${i}_trafficLine`, line));
+        this.trafficLines = [];
     }
 
 
     public onRender(): void {
-        const section: MapSection = this.findSection();
-        const player: StarShip = (<OfflineGameState> this.parent).offlinePlayer;
+        this.trafficLines.forEach((line: TrafficLine, index: number) => {
+            if ((<OfflineGameState> this.parent).getLeadingPlayerPos().x - line.position.x < -10) {
+                Realm.objects.free(`${this.name}_trafficLine`, line);
 
-        // (<OfflineGameState> this.parent).offlinePlayer.setImmediateAim(section.position);
-        //player.mixAim(section.getEndVector().subtract(section.position).negate().add(player.position));
-        player.mixAim(section.position);
-    }
+                this.trafficLines[index] = <TrafficLine> Realm.objects.grab(`${this.name}_trafficLine`);
+                this.placeTrafficLine(this.trafficLines[index], index, true);
+            }
+        });
 
-
-    private nextSectionIndex(last: number): number {
-        if (last === this.sections.length - 1) {
-            return 0;
-        }
-
-        return last + 1;
-    }
-
-    private nextNearestSectionIndex(last: number): number {
-        const next: number = this.nextSectionIndex(last);
-
-        if (BABYLON.Vector3.DistanceSquared(
-            this.sections[next].position,
-            (<OfflineGameState> this.parent).offlinePlayer.position,
-        ) > BABYLON.Vector3.DistanceSquared(
-            this.sections[last].position,
-            (<OfflineGameState> this.parent).offlinePlayer.position,
-        )) {
-            return undefined;
-        }
-
-        return next;
-    }
-
-    private findSection(offset: number = 5): MapSection {
-        let current: number = this.lastSectionIndex;
-        let last: number = current;
-
-        for (; current !== undefined; current = this.nextNearestSectionIndex(current)) {
-            last = current;
-        }
-
-        this.lastSectionIndex = last;
-        return this.sections[this.nextSectionIndex(last + offset)];
-    }
-
-
-    public testGenerate1(): void {
-        let last: MapSection = <MapSection> Realm.objects.grab(`${this.name}__mapSection`);
-        last.position = new BABYLON.Vector3(0, -40, 0);
-        this.sections.push(last);
-
-        for (let i = 0; i < 100; i++) {
-            const next: MapSection = <MapSection> Realm.objects.grab(`${this.name}__mapSection`);
-            next.afterSection(last, this.nextVector());
-            this.sections.push(next);
-
-            last = next;
+        if ((<OfflineGameState> this.parent).getLeadingPlayerPos().x -
+                    this.mainTrafficLine.sections[0].position.x < -40) {
+            this.mainTrafficLine.generateNextSection();
         }
     }
 
 
-    public generateNextSection(): void {
-        Realm.objects.free(`${this.name}__mapSection`, this.sections[0]);
-
-        const next: MapSection = <MapSection> Realm.objects.grab(`${this.name}__mapSection`);
-        next.afterSection(this.sections[this.sections.length - 1], this.nextVector());
-
-        this.sections.splice(0, 1);
-        this.sections.push(next);
-
-        this.lastSectionIndex--;
-        if (this.lastSectionIndex < 0) {
-            this.lastSectionIndex = this.sections.length - 1;
-        }
+    public getBuildingName(): string {
+        return this.buildingName;
     }
 
-
-    private nextVector(): BABYLON.Vector3 {
-        let value1: number = this.noise.scaled([this.v1.x, this.v1.y]);
-        let value2: number = this.noise.scaled([this.v2.x, this.v2.y]);
-
-        const step: number = 0.005;
-        this.v1.addInPlace(new BABYLON.Vector2(step, step));
-        this.v2.addInPlace(new BABYLON.Vector2(step, step));
-
-        return new BABYLON.Vector3(
-            0,
-            value1 * 0.5,
-            value2 * 0.5,
-        );
-    }
 
 }

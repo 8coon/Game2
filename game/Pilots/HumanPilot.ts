@@ -27,17 +27,18 @@ export class HumanPilot extends Pilot {
     public grabShip(): void {
         this.canControl = true;
         Realm.camera.follow(this.ship);
+        this.ship.speed = this.ship.maxSpeed;
 
-        Promise.resolve().then(() => {
-            this.ship.position = new BABYLON.Vector3(-5, 0, 0);
+        /*Promise.resolve().then(() => {
+            this.ship.position = new BABYLON.Vector3(5, 0, 0);
             this.ship.setImmediateAim(new BABYLON.Vector3(-10, -1, 0));
             this.ship.speed = this.ship.maxSpeed;
 
             return this.ship.atAim();
         }).then(() => {
-            //this.canControl = true;
+            this.canControl = true;
             Realm.camera.follow(this.ship);
-        });
+        });*/
 
         //this.canControl = false;
 

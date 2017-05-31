@@ -14,7 +14,8 @@ const replace = (path) => {
         }
 
         const contents = fs.readFileSync(fullName, 'utf-8')
-            .replace('require("../../static/babylon")', '{default: BABYLON}');
+            .replace('require("../../static/babylon")', '{default: BABYLON}')
+            .replace('require("../../../static/babylon")', '{default: BABYLON}');
         fs.writeFileSync(fullName, contents, 'utf-8');
     });
 };

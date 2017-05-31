@@ -4,8 +4,11 @@ import {RealmState} from "../Realm/RealmState";
 import {StarShip} from "../Models/StarShip";
 import {IObject} from "../ObjectFactory/ObjectFactory";
 import {HumanPilot} from "../Pilots/HumanPilot";
-import {OfflineMap, MapSection} from "../Map/OfflineMap";
 import {Building} from "../Map/Building";
+import {MainTrafficLine} from "../Map/Traffic/MainTrafficLine";
+import {NPCStarShip} from "../Models/NPCStarShip";
+import {Random} from "../Utils/Random";
+import {OfflineMap} from "../Map/OfflineMap";
 
 
 declare const Realm: RealmClass;
@@ -15,10 +18,12 @@ export class OfflineGameState extends RealmState {
 
     public offlinePlayer: StarShip;
     public offlineMap: OfflineMap;
+    public random: Random;
 
 
     constructor(name: string, scene: BABYLON.Scene) {
         super(name, scene);
+        this.random = new Random(/*Math.random() * 10000000*/1);
 
         Realm.objects.addObject('offlinePlayer', 1, (): IObject => {
             const starShip: StarShip = new StarShip('offlinePlayer', scene);
@@ -28,11 +33,7 @@ export class OfflineGameState extends RealmState {
         });
 
         Realm.objects.addObject('offlineMap', 1, (): IObject => {
-            return <IObject> new OfflineMap('offlineMap', scene, this, Math.random());
-        });
-
-        Realm.objects.addObject('testBuilding', 1, (): IObject => {
-            return <IObject> new Building(Math.random(), 'testBuilding', scene, this);
+            return new OfflineMap('offlineMap', scene, this, this.random);
         });
 
         this.alpha = 0;
@@ -44,12 +45,14 @@ export class OfflineGameState extends RealmState {
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
         this.offlineMap = <OfflineMap> Realm.objects.grab('offlineMap');
 
-        const building: Building = <Building> Realm.objects.grab('testBuilding');
+        this.offlineMap.mainTrafficLine.connectShip(this.offlinePlayer);
+
+        /*const building: Building = <Building> Realm.objects.grab('testBuilding');
         building.position.x = -100;
         building.position.y = -60;
-        building.scaling = new BABYLON.Vector3(0.35, 0.35, 0.35);
+        building.scaling = new BABYLON.Vector3(0.35, 0.35, 0.35);*/
 
-        //(<HumanPilot> this.offlinePlayer.pilot).grabShip();
+        (<HumanPilot> this.offlinePlayer.pilot).grabShip();
     }
 
 
@@ -60,9 +63,16 @@ export class OfflineGameState extends RealmState {
 
 
     public onRender() {
-        if (this.offlinePlayer.position.x - this.offlineMap.sections[0].position.x < -10) {
-            this.offlineMap.generateNextSection();
-        }
+    }
+
+
+    public getLeadingPlayer(): StarShip {
+        return this.offlinePlayer
+    }
+
+
+    public getLeadingPlayerPos(): BABYLON.Vector3 {
+        return this.getLeadingPlayer().position;
     }
 
 }
