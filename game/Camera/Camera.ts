@@ -121,6 +121,10 @@ export class Camera extends BABYLON.Mesh {
         this.followsMesh = mesh;
     }
 
+    /*public immediateFollow(position): void {
+        this.onFollow(0, 0);
+    }*/
+
     public initLookAtDirection(alpha: number): void {
         this.lookAtDirection(alpha);
 
@@ -153,16 +157,7 @@ export class Camera extends BABYLON.Mesh {
 
 
             case CameraMode.FOLLOWING: {
-                let offset: BABYLON.Vector3 = this.followsMesh.direction.clone().scale(7 * Realm.animModifier);
-                offset.y -= 0.8;
-
-                this.camera.position = Realm.calculateVectorLag(this.camera.position,
-                        this.followsMesh.position.subtract(offset), this.followLag);
-
-                this.camera.setTarget(Realm.calculateVectorLag(this.camera.getTarget(),
-                        this.followsMesh.position.add(
-                            new BABYLON.Vector3(-0.2, 0.6, 0)
-                        ), this.alignLag));
+                this.onFollow(this.followsMesh.position, this.followsMesh.direction);
             } break;
 
         }
@@ -171,6 +166,21 @@ export class Camera extends BABYLON.Mesh {
 
     public explosionAnimate(power: number, duration: number): void {
         this.animator.addAnimationAction(ExplosionAnimationAction.create(power, duration));
+    }
+
+
+    private onFollow(position: BABYLON.Vector3, direction: BABYLON.Vector3,
+                     alignLag: number = this.alignLag, followLag: number = this.followLag): void {
+        let offset: BABYLON.Vector3 = direction.clone().scale(7 * Realm.animModifier);
+        offset.y -= 0.8;
+
+        this.camera.position = Realm.calculateVectorLag(this.camera.position,
+            position.subtract(offset), followLag);
+
+        this.camera.setTarget(Realm.calculateVectorLag(this.camera.getTarget(),
+            position.add(
+                new BABYLON.Vector3(-0.2, 0.6, 0)
+            ), alignLag));
     }
 
 }

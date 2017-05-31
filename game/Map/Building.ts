@@ -160,6 +160,8 @@ export class Building extends BABYLON.Mesh implements IObject {
             this.height = this.lowerScaffold.height + this.upperScaffold.height;
         }
 
+        //this.material = new StandardMaterial('material', scene);
+        //this.material.alpha = 0;
     }
 
 
@@ -173,6 +175,13 @@ export class Building extends BABYLON.Mesh implements IObject {
     }
 
     public onRender(): void {
+        /*if (this.visibility < 1) {
+            this.visibility += 0.05;
+        }
+
+        if (this.visibility > 1) {
+            this.visibility = 1;
+        }*/
     }
 
     public onDelete(): void {

@@ -20,7 +20,7 @@ export class MainTrafficSection extends TrafficSection implements IObject {
 
     constructor(name: string, scene: BABYLON.Scene, parent: TrafficLine, length: number, random: Random) {
         super(name, scene, parent, 3, random);
-        this.shape.isVisible = true;
+        this.shape.isVisible = true
     }
 
 
@@ -34,10 +34,9 @@ export class MainTrafficSection extends TrafficSection implements IObject {
 
             building.position = this.position.add(new BABYLON.Vector3(
                 this.random.range(-10, 10, false),
-                yPos,
+                0,
                 (i - 0.5 * max) * 50 + this.random.range(-10, 10, false),
             ));
-            building.position.y = yPos;
 
             const scaling = this.random.range(0.4, 0.6, false);
             building.scaling = new BABYLON.Vector3(scaling, scaling, scaling);
@@ -48,14 +47,14 @@ export class MainTrafficSection extends TrafficSection implements IObject {
                 0,
             );
 
-            console.log(building.height + building.position.y, this.position.y);
             building.setEnabled(true);
 
-            if (i === Math.floor(0.5 * max) &&
-                        building.height + building.position.y + 10 > this.position.y) {
+            if (BABYLON.Vector3.DistanceSquared(building.position, this.position) < 1600 &&
+                        building.height + building.position.y + yPos + 10 > this.position.y) {
                 building.setEnabled(false);
             }
 
+            building.position.y = yPos;
             this.buildings.push(building);
         }
     }
