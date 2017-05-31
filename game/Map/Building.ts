@@ -62,12 +62,17 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
 
 
     constructor(random: Random, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh,
-                isSmall: boolean, args: object) {
+                isSmall: boolean, args: object, isTop: boolean) {
         super(name, scene, parent);
         this.random = random;
         this.isSmall = isSmall;
 
-        this.floors = this.random.range(30, 40);
+        this.floors = this.random.range(80, 100);
+
+        if (isTop) {
+            this.floors = this.random.range(20, 50);
+        }
+
         args['floors'] = this.floors;
 
         let shapes: any[] = [RectangularBuildingShapeBuilder, SquareBuildingShapeBuilder];
@@ -132,6 +137,7 @@ export class Building extends BABYLON.Mesh implements IObject {
     public upperScaffold: BuildingSectionScaffold;
     public isSmall: boolean;
     public args: object = {};
+    public height: number = 0;
 
 
     constructor(seed: number, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh) {
@@ -141,15 +147,17 @@ export class Building extends BABYLON.Mesh implements IObject {
 
         if (this.isSmall) {
             this.lowerScaffold = new BuildingSectionScaffold(this.random, 'lowerScaffold', scene, this,
-                    true, this.args);
+                    true, this.args, false);
+            this.height = this.lowerScaffold.height;
         } else {
             this.lowerScaffold = new BuildingSectionScaffold(this.random, 'lowerScaffold', scene, this,
-                    false, this.args);
+                    false, this.args, false);
 
             const upperPos: Vector3 = this.args['nextPosition'];
             this.upperScaffold = new BuildingSectionScaffold(this.random, 'upperScaffold', scene, this,
-                    true, this.args);
+                    true, this.args, true);
             this.upperScaffold.position = upperPos;
+            this.height = this.lowerScaffold.height + this.upperScaffold.height;
         }
 
     }
@@ -165,7 +173,6 @@ export class Building extends BABYLON.Mesh implements IObject {
     }
 
     public onRender(): void {
-        this.rotation.y += 0.01;
     }
 
     public onDelete(): void {

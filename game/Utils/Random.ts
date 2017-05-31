@@ -50,4 +50,12 @@ export class Random {
         return items[Math.floor(this.number * items.length)];
     }
 
+    public grab(items: any[]): any {
+        if (items.length === 0) {
+            return undefined;
+        }
+        
+        return items.splice(Math.floor(this.number * items.length), 1)[0];
+    }
+
 }

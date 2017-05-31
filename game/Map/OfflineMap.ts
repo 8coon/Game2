@@ -8,6 +8,7 @@ import {MainTrafficLine} from "./Traffic/MainTrafficLine";
 import {StarShip} from "../Models/StarShip";
 import {NPCStarShip} from "../Models/NPCStarShip";
 import {Building} from "./Building";
+import {MainTrafficSection} from "./Traffic/MainTrafficSection";
 
 
 declare const Realm: RealmClass;
@@ -20,7 +21,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     public trafficLineCount: number = 4;
     public mainTrafficLine: MainTrafficLine;
     public NPCName: string;
-    public buildingName: string;
+    public buildingName: string = `${this.name}__building`;
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, random: Random) {
@@ -85,13 +86,18 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
 
         const xDistCf: number = (index > 1) ? 1 : 0.5;
         const length = this.mainTrafficLine.sections.length;
-        const position: BABYLON.Vector3 = this.mainTrafficLine.sections[
-                    Math.floor(xDistCf * length) - (index % 2) * 3 - 3
-            ].position;
+        const sectionIndex: number = Math.floor(xDistCf * length) - (index % 2) * 3 - 3;
+        const position: BABYLON.Vector3 = this.mainTrafficLine.sections[sectionIndex].position;
 
         line.position = position.subtract(new BABYLON.Vector3(0, 0, 0.5 * 145.455));
         line.direction = index % 2 === 0 ? 1 : -1;
         line.reposition();
+
+        for (let i = sectionIndex - 3; i < sectionIndex + 3; i++) {
+            if (this.mainTrafficLine.sections[i]) {
+                this.mainTrafficLine.sections[i].hasCrossingAttached = true;
+            }
+        }
     }
 
 
@@ -127,6 +133,11 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
                     this.mainTrafficLine.sections[0].position.x < -40) {
             this.mainTrafficLine.generateNextSection();
         }
+    }
+
+
+    public getBuildingName(): string {
+        return this.buildingName;
     }
 
 

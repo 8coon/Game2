@@ -1,5 +1,6 @@
 
 
+import {Random} from "../Utils/Random";
 export interface IObject {
     onCreate(): void;
     onGrab(): void;
@@ -53,7 +54,6 @@ export class ObjectFactory {
 
     public load(): Promise<any> {
         const promises: Promise<any>[] = [];
-        console.log(this.objectFactories.size);
 
         this.objectFactories.forEach((objectProto: IObjectProto, name: string) => {
             this.objects.set(name, new Allocated());
@@ -120,6 +120,25 @@ export class ObjectFactory {
     }
 
 
+    public grabRandom(name: string, random: Random): IObject {
+        if (this.logging) {
+            console.log('Grabbing', name);
+        }
+
+        const alloc: Allocated = this.objects.get(name);
+
+        if (alloc.free.length === 0) {
+            throw new Error(`All meshes of type "${name}" are allocated!`);
+        }
+
+        const object: IObject = random.grab(alloc.free);
+        object['_free'] = false;
+        object.onGrab();
+
+        return object;
+    }
+
+
     public free(name: string, object: IObject): void {
         if (this.logging) {
             console.log('Freeing', name);
@@ -170,6 +189,7 @@ export class ObjectFactory {
         alloc.free.pop().onDelete();
         alloc.free.push(newObject);
         newObject.onCreate();
+        newObject.onFree();
     }
 
 }

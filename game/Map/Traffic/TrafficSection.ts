@@ -1,6 +1,7 @@
 import BABYLON from "../../../static/babylon";
 import {RealmClass} from "../../Realm/Realm";
 import {IObject} from "../../ObjectFactory/ObjectFactory";
+import {Random} from "../../Utils/Random";
 
 declare const Realm: RealmClass;
 
@@ -15,11 +16,14 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
     public length: number;
     public colorProgressStep: number = 0.3;
     public colorProgress: number = 0;
+    public hasCrossingAttached: boolean = false;
+    public random: Random;
 
 
-    constructor(name: string, scene: BABYLON.Scene, parent: BABYLON.Node, length: number = 3) {
+    constructor(name: string, scene: BABYLON.Scene, parent: BABYLON.Node, length: number, random: Random) {
         super(name, scene, parent);
         this.length = length;
+        this.random = random;
         const trueLength: number = this.length * 1.1;
 
         this.shape = BABYLON.Mesh.CreateCylinder(
@@ -72,6 +76,7 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
 
     public onFree(): void {
         this.isVisible = false;
+        this.hasCrossingAttached = false;
     }
 
     public onDelete(): void {

@@ -64,7 +64,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
                 parent = this;
             }
 
-            return new (this.sectionProto)(`${name}__mapSection`, scene, parent);
+            return new (this.sectionProto)(`${name}__mapSection`, scene, parent, 3, this.rand1);
         });
     }
 
@@ -155,7 +155,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
 
         this.NPCDelay = this.NPCDelayMax;
 
-        if (!this.hasNPCs || this.rand1.number < 0.92 || !Realm.objects.hasFree(this.getNPCName())) {
+        if (!this.hasNPCs || this.rand1.number < 0.8 || !Realm.objects.hasFree(this.getNPCName())) {
             return;
         }
 

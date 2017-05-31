@@ -16,6 +16,10 @@ export class MainTrafficLine extends TrafficLine implements IObject{
     public sections: MainTrafficSection[] = [];
     public sectionProto = MainTrafficSection;
 
+    private sinceGenerated: number = 0;
+    private segmentForBuilding: MainTrafficSection;
+    private sinceSegmentSet: number = 0;
+
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineMap, random: Random) {
         super(name, scene, parent, random, false, 101, 3, false);
@@ -25,6 +29,18 @@ export class MainTrafficLine extends TrafficLine implements IObject{
 
     public onRender(): void {
         super.onRender();
+
+        if (!this.segmentForBuilding) {
+            return;
+        }
+
+        this.sinceSegmentSet++;
+
+        if (this.sinceSegmentSet > 10) {
+            this.segmentForBuilding.generateBuildings();
+            this.segmentForBuilding = undefined;
+            this.sinceSegmentSet = 0;
+        }
     }
 
     public onGrab(): void {
@@ -43,11 +59,25 @@ export class MainTrafficLine extends TrafficLine implements IObject{
         }
 
         this.pushSection(next);
+        this.sinceGenerated++;
+
+        if (this.sinceGenerated < 20) {
+            return
+        }
+
+        this.sinceGenerated = 0;
+        this.sinceSegmentSet = 0;
+        this.segmentForBuilding = <MainTrafficSection> next;
     }
 
 
     public getLastSection(): MainTrafficSection {
         return this.sections[this.sectionCount - 1];
+    }
+
+
+    public getBuildingName(): string {
+        return (<any> this.parent).getBuildingName();
     }
 
 }
