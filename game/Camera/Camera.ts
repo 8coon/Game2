@@ -96,8 +96,8 @@ export class Camera extends BABYLON.Mesh {
     public camera: BABYLON.TargetCamera;
 
     private followsMesh: StarShip;
-    public followLag: number = 50;
-    public alignLag: number = 10;
+    public followLag: number = 10;
+    public alignLag: number = 5;
 
     private mode: CameraMode = CameraMode.DIRECTION;
     private alignVector: BABYLON.Vector3 = BABYLON.Axis.X.negate();
@@ -172,7 +172,7 @@ export class Camera extends BABYLON.Mesh {
     private onFollow(position: BABYLON.Vector3, direction: BABYLON.Vector3,
                      alignLag: number = this.alignLag, followLag: number = this.followLag): void {
         let offset: BABYLON.Vector3 = direction.clone().scale(7 * Realm.animModifier);
-        offset.y -= 0.8;
+        offset.y -= 1.8; // 0.8
 
         this.camera.position = Realm.calculateVectorLag(this.camera.position,
             position.subtract(offset), followLag);

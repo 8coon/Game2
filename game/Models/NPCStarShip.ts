@@ -12,6 +12,7 @@ export class NPCStarShip extends StarShip {
 
     constructor(name: string, scene: BABYLON.Scene) {
         super(name, scene, false);
+        this.maxSpeed *= 0.5;
     }
 
 }

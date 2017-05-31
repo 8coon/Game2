@@ -83,7 +83,7 @@ export class HumanPilot extends Pilot {
 
         this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 0.5, this.movementLag);
         this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 0.9, this.movementLag);
-        // this.ship.setRoll(movX * 0.5);
+        this.ship.setRoll(movX * 0.2);
     }
 
 

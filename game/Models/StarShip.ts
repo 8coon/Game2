@@ -18,7 +18,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public pilot: Pilot;
 
     public speed: number = 0;
-    public maxSpeed: number = 0.07 * 3;
+    public maxSpeed: number = 0.07 * 12;
     public aimLag: number = 20;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
@@ -98,7 +98,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
     public setRoll(roll: number): void {
         if (Math.abs(roll) < 5) {
-            roll = 0;
+            roll *= 0.5;
         }
 
         this.zNextRotation = 1.7 * roll;
