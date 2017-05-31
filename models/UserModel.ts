@@ -54,7 +54,6 @@ export class UserModel implements UserModelFields, IModel {
                 JSWorks.config['backendURL'] + '/session/current',
                 JSWorks.HTTPMethod.GET,
             ).then((data) => {
-                console.log(data);
                 if (data['status'] === -1) {
                     (<IModel> this).apply(data);
                 } else {

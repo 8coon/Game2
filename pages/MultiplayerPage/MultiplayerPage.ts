@@ -1,3 +1,10 @@
-/**
- * Created by Vileven on 31.05.17.
- */
+
+import {JSWorksLib} from "jsworks/dist/dts/jsworks";
+
+declare const JSWorks: JSWorksLib;
+
+
+@JSWorks.Page({ view: 'MultiplayerView', controller: 'MultiplayerController' })
+export class MultiplayerPage {
+
+}

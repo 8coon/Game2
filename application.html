@@ -23,7 +23,8 @@
 
 <script>
     JSWorks.config = {
-            backendURL: 'https://motion-project.herokuapp.com'
+            backendURL: 'https://motion-project.herokuapp.com',
+            backendSocket: 'ws://motion-project.herokuapp.com/game'
         }
 </script>
 
@@ -33,8 +34,8 @@
             <app-route id="MenuRoute" page="MenuPage" default></app-route>
             <app-route id="LoginRoute" page="LoginPage" match="login"></app-route>
             <app-route id="SignUpRoute" page="SignUpPage" match="signup"></app-route>
-            <app-route id="SinglePlayerRoute" page="MenuPage" match="singlplayer"></app-route>
-            <app-route id="MultiplayerRoute" page="MenuPage" match="multiplayer"></app-route>
+            <app-route id="SinglePlayerRoute" page="SinglePlayerPage" match="singlplayer"></app-route>
+            <app-route id="MultiplayerRoute" page="MultiplayerPage" match="multiplayer"></app-route>
             <app-route id="LogoutRoute" page="LoadingPage" match="logout"></app-route>
 
         </app-routes>

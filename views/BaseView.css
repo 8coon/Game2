@@ -137,7 +137,7 @@ input:focus {
     bottom: 1px;
     position: absolute;
     border-top: 1px solid black;
-    background: #00f5ff;
+    background: #f20dff;
     -webkit-transition:all 0.2s ease;
     transition: all 0.2s ease;
     /*box-shadow:  0 0 3px 5px rgba(255, 255, 255, 0.3);*/
@@ -162,17 +162,22 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
     color: #fff;
     font-size: 16px;
     line-height: 20px;
-    -webkit-font-smoothing: antialiased;
     text-align: center;
     letter-spacing: 1px;
     background: transparent;
     border: 0;
-    border-bottom: 2px solid #ff8f26;
     cursor: pointer;
 }
 .button:focus { outline: 0; }
 
+.buttonWhite {
+    background: #ffffff;
+    color: #444444;
+}
 
+.buttonWhite:hover {
+    background: rgba(224, 224, 224, 0.88);
+}
 
 .buttonOrange {
     background: #ff8f26;
