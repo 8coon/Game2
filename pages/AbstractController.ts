@@ -15,6 +15,20 @@ export abstract class AbstractController {
 
 
     public onNavigate(args?: object): void {
+
+        if (!JSWorks.config['serviceWorkerEnabled'] && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/serviceWorker/serviceWorker.js')
+                .then((registration) => {
+                    console.log('ServiceWorker registration', registration);
+                    JSWorks.config['serviceWorkerEnabled'] = true;
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        } else {
+            JSWorks.config['serviceWorkerEnabled'] = true;
+        }
+
         if (!Realm) {
             Realm = new RealmClass(this.gameCanvasId);
             Realm.init();
