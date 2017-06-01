@@ -10,6 +10,7 @@ import {Loader} from "../Loader/Loader";
 import {StarShip} from "../Models/StarShip";
 import {OfflineGameState} from "../States/OfflineGameState";
 
+interface IResolution { width?: number, height?: number, }
 
 export class RealmClass {
 
@@ -41,7 +42,8 @@ export class RealmClass {
 
     constructor(canvasId: string) {
         this.canvas = <HTMLCanvasElement> document.querySelector(`#${canvasId}`);
-        this.engine = new BABYLON.Engine(this.canvas, true);
+        this.initCanvas({width: 10, height: 10});
+        // this.engine = new BABYLON.Engine(this.canvas, true);
         this.engine.loadingScreen = new LoadingScreen('');
         this.scene = new RealmScene(this.engine);
         this.camera = new Camera('camera', this.scene);
@@ -112,8 +114,6 @@ export class RealmClass {
 
                     this.timeDelta = newMillis - oldMillis;
                     this.animModifier = 1 / (this.timeDelta / (1000 / 60));
-
-                    // document.title = `AM: ${this.animModifier}`;
 
                     //this.fps = Math.floor(60 / (this.timeDelta / (1000 / 60)));
                     this.fps = Math.floor(60 * this.animModifier);
@@ -329,6 +329,23 @@ export class RealmClass {
         return new Promise<any>((resolve) => {
             window.setTimeout(() => { resolve() }, millis);
         });
+    }
+
+    private initCanvas(res?: IResolution) {
+        let canvasSize = { height: '100%', width: '100%' };
+
+        if (res) {
+            canvasSize.height = `${res.height.toString()}px` || canvasSize.height;
+            canvasSize.width = `${res.width.toString()}px` || canvasSize.width;
+        }
+
+        this.canvas.style.height = canvasSize.height;
+        this.canvas.style.width = canvasSize.width;
+
+        this.engine = new BABYLON.Engine(this.canvas, true);
+
+        this.canvas.style.height = '100%';
+        this.canvas.style.width = '100%';
     }
 
 }

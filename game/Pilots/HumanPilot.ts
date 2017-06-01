@@ -41,9 +41,9 @@ export class HumanPilot extends Pilot {
             Realm.camera.follow(this.ship);
         });*/
 
-        //this.canControl = false;
+        // this.canControl = false;
 
-        /*Promise.resolve().then(() => {
+        Promise.resolve().then(() => {
             this.ship.position = new BABYLON.Vector3(5, -4, -3);
             this.ship.setImmediateAim(new BABYLON.Vector3(-2, 0, 0.8));
 
@@ -62,7 +62,7 @@ export class HumanPilot extends Pilot {
         }).then(() => {
             this.ship.aim = new BABYLON.Vector3(-20, 0, 0);
             this.canControl = true;
-        })*/
+        })
     }
 
 
