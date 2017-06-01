@@ -178,11 +178,16 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
                 ship.setImmediateAim(aim);
             }
 
-            if ((this.direction == 1 && (section['_index'] + 5) > this.sections.length)
-                    || (this.direction == -1 && section['_index'] < 5)) {
+            if (ship.position.x - 10 > (<any> this.parent).getLeadingPlayer().position.x) {
                 Realm.objects.free(this.getNPCName(), ship);
                 this.shipsConnected.splice(index, 1);
             }
+
+            /*if ((this.direction == 1 && (section['_index'] + 5) > this.sections.length)
+                    || (this.direction == -1 && section['_index'] < 5)) {
+                Realm.objects.free(this.getNPCName(), ship);
+                this.shipsConnected.splice(index, 1);
+            }*/
         });
         
         this.NPCDelay--;

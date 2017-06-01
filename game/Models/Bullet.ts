@@ -4,6 +4,7 @@ import AbstractMesh = BABYLON.AbstractMesh;
 import {RealmClass} from "../Realm/Realm";
 import {StarShip} from "./StarShip";
 import {IObject} from "../ObjectFactory/ObjectFactory";
+import {OfflineGameState} from "../States/OfflineGameState";
 
 
 declare const Realm: RealmClass;
@@ -49,18 +50,30 @@ export class Bullet {
             bullet.position.addInPlace(bullet['_direction']);
             bullet['_flew']++;
 
+            (<OfflineGameState> Realm.state).ships.forEach((ship: StarShip) => {
+                if (ship === bullet['_ship']) {
+                    return;
+                }
+
+                if (ship.intersectsMesh(bullet)) {
+                    console.log('intersects!');
+                    ship.health -= 50;
+                }
+            });
+
             if (bullet['_flew'] > 20) {
                 Realm.objects.free(name, <any> bullet);
             }
         };
 
-        bullet['fire'] = (position: BABYLON.Vector3, direction: BABYLON.Vector3) => {
+        bullet['fire'] = (ship: StarShip, position: BABYLON.Vector3, direction: BABYLON.Vector3) => {
             const speed = 15;
 
             bullet.position = position.clone();
             bullet['_direction'] = direction.normalize().scale(speed);
             bullet.lookAt(bullet.position.add(bullet['_direction']));
             bullet['_flew'] = 0;
+            bullet['_ship'] = ship;
         };
 
         return <any> bullet;

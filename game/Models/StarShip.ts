@@ -5,6 +5,7 @@ import {RealmClass} from "../Realm/Realm";
 import {IObject} from "../ObjectFactory/ObjectFactory";
 import {Pilot} from "../Pilots/Pilot";
 import {AnimatedValue, Animation} from "../Animation/AnimatedValue";
+import {OfflineGameState} from "../States/OfflineGameState";
 
 
 declare const Realm: RealmClass;
@@ -22,6 +23,9 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public aimLag: number = 20;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
+    public flew: number = 0;
+    public health: number = 0;
+    public maxHealth: number = 100;
 
     public direction: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private _aim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
@@ -68,7 +72,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
             return;
         }
 
-        (<any> Realm.objects.grab(bulletName)).fire(this.position, this.direction);
+        (<any> Realm.objects.grab(bulletName)).fire(this, this.position, this.direction);
     }
 
 
@@ -132,6 +136,11 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public onRender(): void {
+        if (this.health < 0) {
+            this.setEnabled(false);
+            return;
+        }
+
         if (this.pilot) {
             this.pilot.think();
         }
@@ -181,11 +190,21 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
     public onGrab(): void {
         this.setEnabled(true);
+        this.health = this.maxHealth;
+
+        (<OfflineGameState> Realm.state).ships.push(this);
     }
 
 
     public onFree(): void {
         this.setEnabled(false);
+
+        if (!Realm.state || !(<OfflineGameState> Realm.state).ships) {
+            return;
+        }
+
+        (<OfflineGameState> Realm.state).ships.splice(
+                (<OfflineGameState> Realm.state).ships.indexOf(this), 1);
     }
 
     public onDelete(): void {
