@@ -26,7 +26,7 @@ html, body {
 
 
 
-#game-canvas {
+/*#game-canvas {
     height: 100%;
     width: 100%;
     left: 0;
@@ -35,7 +35,7 @@ html, body {
     z-index: -1;
     overflow: hidden;
     position: fixed;
-}
+}*/
 
 .container {
     display: flex;

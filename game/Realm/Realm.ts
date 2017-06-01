@@ -42,8 +42,8 @@ export class RealmClass {
 
     constructor(canvasId: string) {
         this.canvas = <HTMLCanvasElement> document.querySelector(`#${canvasId}`);
-        this.initCanvas({width: 10, height: 10});
-        // this.engine = new BABYLON.Engine(this.canvas, true);
+        // this.initCanvas({width: 10, height: 10});
+        this.engine = new BABYLON.Engine(this.canvas, true);
         this.engine.loadingScreen = new LoadingScreen('');
         this.scene = new RealmScene(this.engine);
         this.camera = new Camera('camera', this.scene);
@@ -57,12 +57,13 @@ export class RealmClass {
             BABYLON.SceneOptimizerOptions.HighDegradationAllowed()
         );*/
         this.scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+        this.grabPointerLock();
 
-        this.canvas.addEventListener('click', () => {
+        /*this.canvas.addEventListener('click', () => {
             if (!this.pointerLocked) {
                 this.grabPointerLock();
             }
-        });
+        });*/
 
         if ('onpointerlockchange' in document) {
             document.addEventListener('pointerlockchange', () => { this.pointerLockChanged(); });
@@ -81,6 +82,13 @@ export class RealmClass {
 
             return task.loadedMeshes[0];
         };
+    }
+
+
+    public setPointerLock(): void {
+        if (!this.pointerLocked) {
+            this.grabPointerLock();
+        }
     }
 
 
