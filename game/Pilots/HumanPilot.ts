@@ -25,7 +25,7 @@ export class HumanPilot extends Pilot {
     }
 
 
-    public grabShip(initPos?: BABYLON.Vector3): void {
+    public grabShip(): void {
         this.canControl = true;
         Realm.camera.follow(this.ship);
         this.ship.speed = this.ship.maxSpeed;
@@ -90,11 +90,11 @@ export class HumanPilot extends Pilot {
 
 
     protected onMouseDown(): void {
-        if (!this.canControl || !Realm.pointerLocked) {
+        /*if (!this.canControl || !Realm.pointerLocked) {
             return;
         }
 
-        this.ship.shoot();
+        this.ship.shoot();*/
     }
 
 

@@ -56,12 +56,7 @@ export class OfflineGameState extends RealmState {
         Realm.objects.load().then(() => {
             this.offlineMap.startMap();
             this.offlineMap.mainTrafficLine.connectShip(this.offlinePlayer);
-
-            //this.offlinePlayer['_lastSectionIndex'] = 23;
-
-            (<HumanPilot> this.offlinePlayer.pilot).grabShip(
-                    //this.offlineMap.mainTrafficLine.sections[20].position
-            );
+            (<HumanPilot> this.offlinePlayer.pilot).grabShip();
         });
     }
 

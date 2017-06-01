@@ -233,9 +233,9 @@ export class OfflineMap extends BABYLON.Mesh implements IObject {
             this.mainTrafficLine.generateNextSection();
         }
 
-        if (this.random.number < 0.01) {
+        /*if (this.random.number < 0.01) {
             this.spawnPoliceShip();
-        }
+        }*/
     }
 
 

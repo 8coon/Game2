@@ -38,6 +38,10 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public aimYLimit: number;
     public isAI: boolean = false;
 
+    private canvas2d: BABYLON.WorldSpaceCanvas2D;
+    private healthBorder: BABYLON.Rectangle2D;
+    private healthBar: BABYLON.Rectangle2D;
+
 
     constructor(name: string, scene: BABYLON.Scene, hasLight: boolean = true) {
         super(name, scene);
@@ -60,6 +64,32 @@ export class StarShip extends BABYLON.Mesh implements IObject {
             this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
             this.light.intensity = 0.9;
         }
+
+
+        /*this.canvas2d = new BABYLON.WorldSpaceCanvas2D(scene, new BABYLON.Size(100, 100), {
+            id: 'healthBar',
+            worldPosition: new BABYLON.Vector3(0, 2, 0),
+            backgroundFill: '#C0C0C0',
+        });
+
+        this.healthBorder = new BABYLON.Rectangle2D({
+            parent: this.canvas2d,
+            width: 100,
+            height: 25,
+            border: BABYLON.Canvas2D.GetSolidColorBrushFromHex("#FFFFFF"),
+            borderThickness: 1,
+            zOrder: 1,
+        });
+
+        this.healthBorder = new BABYLON.Rectangle2D({
+            parent: this.canvas2d,
+            width: 100,
+            height: 25,
+            fill: BABYLON.Canvas2D.GetSolidColorBrushFromHex("#CC0000"),
+            zOrder: 2,
+        });
+
+        this.canvas2d.worldSpaceCanvasNode.parent = this;*/
     }
 
 
