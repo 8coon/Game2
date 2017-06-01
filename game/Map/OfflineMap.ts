@@ -15,7 +15,7 @@ import {PoliceStarShip} from "../Models/PoliceStarShip";
 declare const Realm: RealmClass;
 
 
-export class OfflineMap extends BABYLON.Mesh implements IObject{
+export class OfflineMap extends BABYLON.Mesh implements IObject {
 
     public random: Random;
     public trafficLines: TrafficLine[] = [];
@@ -24,6 +24,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     public NPCName: string;
     public buildingName: string;
     public policeShips: PoliceStarShip[] = [];
+    public started: boolean = false;
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, random: Random) {
@@ -31,47 +32,6 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         this.random = random;
         this.NPCName = `${name}_NPC`;
         this.buildingName = `${name}__building`;
-        let i = 0;
-
-        Realm.objects.addObject(`${name}_trafficLine`, this.trafficLineCount, (): IObject => {
-            return new TrafficLine(`${name}_${i++}_trafficLine`, scene, this, this.random, true,
-                    undefined, 3);
-        });
-
-        Realm.objects.addObject(`${name}_mainTrafficLine`, 1, (): IObject => {
-            return new MainTrafficLine(`${name}_mainTrafficLine`, scene, this, this.random);
-        });
-
-        Realm.objects.addObject(this.NPCName, 100, (): IObject => {
-            return new NPCStarShip(this.NPCName, scene);
-        });
-
-        Realm.objects.addObject('greenBullet', 50, (): IObject => {
-            return Bullet.createBullet('greenBullet', this, true);
-        });
-
-        Realm.objects.addObject('redBullet', 200, (): IObject => {
-            return Bullet.createBullet('redBullet', this, false);
-        });
-
-        Realm.objects.addObject('policeStarShip', 10, (): IObject => {
-            return new PoliceStarShip('police', scene);
-        });
-
-
-        const seedMapping: number[] = [];
-        const buildingsBufferSize: number = 60;
-
-        for (let i = 0; i < buildingsBufferSize; i++) {
-            seedMapping.push(this.random.range(-1000000, 1000000));
-        }
-
-        Realm.objects.addObject(this.buildingName, buildingsBufferSize, (i: number): IObject => {
-            const building: Building = new Building(seedMapping[i], this.buildingName, scene, undefined);
-            building.setEnabled(false);
-
-            return building;
-        });
     }
 
 
@@ -123,7 +83,67 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     }
 
 
-    public onGrab(): void {
+    public grabResources(seed: number): void {
+        this.random = new Random(seed);
+        let i = 0;
+
+        Realm.objects.addObject(`${this.name}_trafficLine`, this.trafficLineCount, (): IObject => {
+            return new TrafficLine(`${this.name}_${i++}_trafficLine`, this.getScene(), this, this.random, true,
+                undefined, 3);
+        });
+
+        Realm.objects.addObject(`${this.name}_mainTrafficLine`, 1, (): IObject => {
+            return new MainTrafficLine(`${this.name}_mainTrafficLine`, this.getScene(), this, this.random);
+        });
+
+        Realm.objects.addObject(this.NPCName, 100, (): IObject => {
+            return new NPCStarShip(this.NPCName, this.getScene());
+        });
+
+        Realm.objects.addObject('greenBullet', 50, (): IObject => {
+            return Bullet.createBullet('greenBullet', this, true);
+        });
+
+        Realm.objects.addObject('redBullet', 200, (): IObject => {
+            return Bullet.createBullet('redBullet', this, false);
+        });
+
+        Realm.objects.addObject('policeStarShip', 10, (): IObject => {
+            return new PoliceStarShip('police', this.getScene());
+        });
+
+
+        const seedMapping: number[] = [];
+        const buildingsBufferSize: number = 60;
+
+        for (let i = 0; i < buildingsBufferSize; i++) {
+            seedMapping.push(this.random.range(-1000000, 1000000));
+        }
+
+        Realm.objects.addObject(this.buildingName, buildingsBufferSize, (i: number): IObject => {
+            const building: Building = new Building(seedMapping[i], this.buildingName, this.getScene(),
+                    undefined);
+            building.setEnabled(false);
+
+            return building;
+        });
+    }
+
+
+    public freeResources(): void {
+        Realm.objects.removeObject(`${this.name}_trafficLine`);
+        Realm.objects.removeObject(`${this.name}_mainTrafficLine`);
+        Realm.objects.removeObject(this.NPCName);
+        Realm.objects.removeObject('greenBullet');
+        Realm.objects.removeObject('redBullet');
+        Realm.objects.removeObject('policeStarShip');
+        Realm.objects.removeObject(this.buildingName);
+    }
+
+
+    public startMap(): void {
+        Realm.objects.notifyLoaded();
+        this.started = true;
         this.mainTrafficLine = <MainTrafficLine> Realm.objects.grab(`${this.name}_mainTrafficLine`);
 
         for (let i = 0; i < this.trafficLineCount; i++) {
@@ -138,7 +158,15 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         }
 
         this.getLeadingPlayer().position = this.mainTrafficLine.sections[
-                this.mainTrafficLine.sectionCount - 20].position.add(new BABYLON.Vector3(0, 1, 0));
+                    this.mainTrafficLine.sectionCount - 20
+            ].position.add(new BABYLON.Vector3(0, 4, 0));
+        this.getLeadingPlayer().setImmediateAim(this.mainTrafficLine.sections[
+                    this.mainTrafficLine.sectionCount - 17
+            ].position.add(new BABYLON.Vector3(0, 4, 0)));
+    }
+
+
+    public onGrab(): void {
     }
 
 
@@ -175,14 +203,22 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
 
 
     public onFree(): void {
+        this.started = false;
+
         Realm.objects.freeAll(this.NPCName);
         Realm.objects.free(`${this.name}_mainTrafficLine`, this.mainTrafficLine);
         this.trafficLines.forEach((line, i) => Realm.objects.free(`${this.name}_${i}_trafficLine`, line));
         this.trafficLines = [];
+
+        this.freeResources();
     }
 
 
     public onRender(): void {
+        if (!this.started) {
+            return;
+        }
+
         this.trafficLines.forEach((line: TrafficLine, index: number) => {
             if ((<OfflineGameState> this.parent).getLeadingPlayerPos().x - line.position.x < -10) {
                 Realm.objects.free(`${this.name}_trafficLine`, line);

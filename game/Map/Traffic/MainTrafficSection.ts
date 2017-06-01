@@ -30,19 +30,8 @@ export class MainTrafficSection extends TrafficSection implements IObject {
         super(name, scene, parent, 4, random);
         this.shape.isVisible = true;
 
-        /*if (MainTrafficSection.shape) {
-            const shapeInstance: BABYLON.Mesh = MainTrafficSection.shape.clone('shape', this);
-            shapeInstance.material = MainTrafficSection.shape.material.clone('material');
-
-            this.shape = shapeInstance;
-            return;
-        }*/
-
         const leftShape: BABYLON.Mesh = this.shape.clone('leftShape', this);
         const rightShape: BABYLON.Mesh = this.shape.clone('rightShape', this);
-
-        /*const borderIndices: number = leftShape.getTotalIndices() * 2;
-        const borderVertices: number = leftShape.getTotalVertices() * 2;*/
 
         const bottomShape: BABYLON.Mesh = BABYLON.Mesh.CreateGround('bottomShape',
             this.trueLength, // width
@@ -51,44 +40,22 @@ export class MainTrafficSection extends TrafficSection implements IObject {
             scene,
             true, // updatable
         );
-        /*const bottomIndices: number = bottomShape.getTotalIndices();
-        const bottomVertices: number = bottomShape.getTotalVertices();*/
 
-        bottomShape.position.y = -0.8;
+        const bottomShape2: BABYLON.Mesh = bottomShape.clone('bottomShape2');
+        bottomShape2.rotation.z = Math.PI;
 
         leftShape.position.z = -15;
         rightShape.position.z = 15;
+        bottomShape.position.y = -0.8;
+        bottomShape2.position.y = -0.85;
 
-        const newShape: BABYLON.Mesh = BABYLON.Mesh.MergeMeshes([leftShape, rightShape, bottomShape], true);
+        const newShape: BABYLON.Mesh = BABYLON.Mesh.MergeMeshes(
+                [leftShape, rightShape, bottomShape, bottomShape2], true);
         newShape.parent = this;
-
-        /*newShape.subMeshes = [];
-        newShape.subMeshes.push(new BABYLON.SubMesh(0, 0, borderVertices, 0, borderIndices, newShape));
-        newShape.subMeshes.push(new BABYLON.SubMesh(1, borderVertices, bottomVertices, borderIndices,
-                bottomIndices, newShape));*/
-
-        /*newShape.material = new BABYLON.MultiMaterial('multi', scene);
-        (<any> newShape.material).subMaterials = [];
-        (<any> newShape.material).subMaterials.push(this.getSideMaterial());
-        (<any> newShape.material).subMaterials.push(this.getBottomMaterial());*/
         newShape.material = this.getSideMaterial();
 
         this.shape.dispose();
         this.shape = newShape;
-
-        /*const positions = newShape.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-        const normals = newShape.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-        const colors = newShape.getVerticesData(BABYLON.VertexBuffer.ColorKind);
-        const uvs = newShape.getVerticesData(BABYLON.VertexBuffer.UVKind);
-        const indices = newShape.getIndices();
-
-        this.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
-        this.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
-        this.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
-        this.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
-        this.setIndices(indices);*/
-
-        //newShape.dispose();
     }
 
 

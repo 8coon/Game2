@@ -42,13 +42,27 @@ export class OfflineGameState extends RealmState {
     }
 
 
-    public onEnter() {
+    public onEnter(seed?: number) {
         this.ships = [];
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
         this.offlineMap = <OfflineMap> Realm.objects.grab('offlineMap');
 
-        this.offlineMap.mainTrafficLine.connectShip(this.offlinePlayer);
-        (<HumanPilot> this.offlinePlayer.pilot).grabShip();
+        if (!seed) {
+            seed = this.random.number * 1000000;
+        }
+
+        this.offlineMap.grabResources(seed);
+
+        Realm.objects.load().then(() => {
+            this.offlineMap.startMap();
+            this.offlineMap.mainTrafficLine.connectShip(this.offlinePlayer);
+
+            //this.offlinePlayer['_lastSectionIndex'] = 23;
+
+            (<HumanPilot> this.offlinePlayer.pilot).grabShip(
+                    //this.offlineMap.mainTrafficLine.sections[20].position
+            );
+        });
     }
 
 

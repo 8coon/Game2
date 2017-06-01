@@ -25,10 +25,11 @@ export class HumanPilot extends Pilot {
     }
 
 
-    public grabShip(): void {
+    public grabShip(initPos?: BABYLON.Vector3): void {
         this.canControl = true;
         Realm.camera.follow(this.ship);
         this.ship.speed = this.ship.maxSpeed;
+        //this.ship.position = initPos.add(new BABYLON.Vector3(0, 4, 0));
 
         /*Promise.resolve().then(() => {
             this.ship.position = new BABYLON.Vector3(5, 0, 0);

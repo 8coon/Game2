@@ -1,4 +1,8 @@
 import {Random} from "../Utils/Random";
+import {RealmClass} from "../Realm/Realm";
+
+
+declare const Realm: RealmClass;
 
 
 export interface IObject {
@@ -13,6 +17,7 @@ export interface IObject {
 class Allocated {
     objects: IObject[] = [];
     free: IObject[] = [];
+    notified: boolean = false;
 }
 
 
@@ -37,6 +42,14 @@ export class ObjectFactory {
 
     public addObject(name: string, amount: number, factory: TFactory): void {
         this.objectFactories.set(name, {name, amount, factory, created: false});
+    }
+
+
+    public removeObject(name: string): void {
+        this.freeAll(name);
+
+        this.objects.delete(name);
+        this.objectFactories.delete(name);
     }
 
 
@@ -72,19 +85,26 @@ export class ObjectFactory {
                         this.load().then(() => {
                             res();
                         });
-                    }, 1);
+                    }, 0);
                 }));
             }
         });
 
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => {
+            Realm.setRenderGroupIDs();
+        });
     }
 
 
     public notifyLoaded(): void {
         this.objects.forEach((allocated: Allocated) => {
             allocated.objects.forEach((object: IObject) => {
+                if (allocated.notified) {
+                    return;
+                }
+
                 object.onCreate();
+                allocated.notified = true;
             });
         });
     }

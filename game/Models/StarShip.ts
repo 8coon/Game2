@@ -13,7 +13,6 @@ declare const Realm: RealmClass;
 
 export class StarShip extends BABYLON.Mesh implements IObject {
 
-    private readonly modelName: 'spaceship';
     public ship: BABYLON.Mesh;
     public light: BABYLON.Light;
     public pilot: Pilot;
@@ -44,7 +43,23 @@ export class StarShip extends BABYLON.Mesh implements IObject {
         super(name, scene);
         this.hasLight = hasLight;
 
-        Realm.meshesLoader.queue(this.modelName, '/static/models/', 'spaceship.obj');
+        this.ship = Realm.meshesLoader.retrieve('spaceship').clone('ship');
+        this.ship.parent = this;
+        this.ship.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3);
+        this.ship.rotation = new BABYLON.Vector3(Math.PI, 0.5 * Math.PI, 0.5 * Math.PI);
+        this.ship.setEnabled(true);
+
+        if (this.hasLight) {
+            this.light = new BABYLON.HemisphericLight(
+                'light',
+                new BABYLON.Vector3(0, 5, 1),
+                this.getScene(),
+            );
+
+            this.light.parent = this;
+            this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
+            this.light.intensity = 0.9;
+        }
     }
 
 
@@ -77,23 +92,6 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public onCreate(): void {
-        this.ship = Realm.meshesLoader.retrieve(this.modelName).clone('ship');
-        this.ship.parent = this;
-        this.ship.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3);
-        this.ship.rotation = new BABYLON.Vector3(Math.PI, 0.5 * Math.PI, 0.5 * Math.PI);
-        this.ship.setEnabled(true);
-
-        if (this.hasLight) {
-            this.light = new BABYLON.HemisphericLight(
-                'light',
-                new BABYLON.Vector3(0, 5, 1),
-                this.getScene(),
-            );
-
-            this.light.parent = this;
-            this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
-            this.light.intensity = 0.9;
-        }
     }
 
 

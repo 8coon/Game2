@@ -57,7 +57,6 @@ export class RealmClass {
             BABYLON.SceneOptimizerOptions.HighDegradationAllowed()
         );*/
         this.scene.ambientColor = new BABYLON.Color3(1, 1, 1);
-        this.grabPointerLock();
 
         /*this.canvas.addEventListener('click', () => {
             if (!this.pointerLocked) {
@@ -92,30 +91,33 @@ export class RealmClass {
     }
 
 
+    public setRenderGroupIDs(): void {
+        this.scene.meshes.forEach((mesh: BABYLON.Mesh) => {
+            if (mesh['__skybox__']) {
+                mesh.renderingGroupId = 0;
+                return;
+            }
+
+            if (!(mesh instanceof BABYLON.InstancedMesh)) {
+                mesh.renderingGroupId = 1;
+            }
+        });
+    }
+
+
     public init(): void {
+        this.meshesLoader.queue('spaceship', '/static/models/', 'spaceship.obj');
         this.sky = new RealmSky('sky', this.scene);
-        this.loadStates();
+        this.scene.load();
 
-        this.objects.load().then(() => {
-            this.scene.load();
-            this.initFX();
+        this.meshesLoader.load().then(() => {
+            this.loadStates();
 
-            this.meshesLoader.load().then(() => {
+            this.objects.load().then(() => {
                 this.notifyLoaded();
+                this.initFX();
+
                 let oldMillis: number = RealmClass.now();
-
-                this.scene.meshes.forEach((mesh: BABYLON.Mesh) => {
-                    if (mesh['__skybox__']) {
-                        mesh.renderingGroupId = 0;
-                        return;
-                    }
-
-                    if (!(mesh instanceof BABYLON.InstancedMesh)) {
-                        mesh.renderingGroupId = 1;
-                    }
-                });
-
-                let even: boolean = true;
 
                 this.engine.runRenderLoop(() => {
                     const newMillis: number = RealmClass.now();
@@ -123,14 +125,9 @@ export class RealmClass {
                     this.timeDelta = newMillis - oldMillis;
                     this.animModifier = 1 / (this.timeDelta / (1000 / 60));
 
-                    //this.fps = Math.floor(60 / (this.timeDelta / (1000 / 60)));
                     this.fps = Math.floor(60 * this.animModifier);
                     this.animModifier = 1.2;
-                    //even = !even;
-
-                    //if (even) {
-                        this.render();
-                    //}
+                    this.render();
 
                     oldMillis = newMillis;
                     document.title = `, FPS: ${this.fps}`;
