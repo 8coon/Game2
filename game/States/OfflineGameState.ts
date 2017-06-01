@@ -19,6 +19,7 @@ export class OfflineGameState extends RealmState {
     public offlinePlayer: StarShip;
     public offlineMap: OfflineMap;
     public random: Random;
+    public ships: StarShip[] = [];
 
 
     constructor(name: string, scene: BABYLON.Scene) {
@@ -42,6 +43,7 @@ export class OfflineGameState extends RealmState {
 
 
     public onEnter() {
+        this.ships = [];
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
         this.offlineMap = <OfflineMap> Realm.objects.grab('offlineMap');
 
@@ -51,6 +53,7 @@ export class OfflineGameState extends RealmState {
 
 
     public onLeave() {
+        this.ships = [];
         Realm.objects.free('offlinePlayer', this.offlinePlayer);
         Realm.objects.free('offlineMap', this.offlineMap);
     }

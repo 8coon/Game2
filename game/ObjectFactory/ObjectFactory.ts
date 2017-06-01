@@ -1,6 +1,6 @@
-
-
 import {Random} from "../Utils/Random";
+
+
 export interface IObject {
     onCreate(): void;
     onGrab(): void;

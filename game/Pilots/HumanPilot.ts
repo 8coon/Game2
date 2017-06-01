@@ -21,6 +21,7 @@ export class HumanPilot extends Pilot {
 
         document.addEventListener('keydown', () => { this.onKeyDown(); });
         document.addEventListener('mousemove', (ev) => { this.onMouseMove(ev); });
+        document.addEventListener('mousedown', (ev) => { this.onMouseDown(); });
     }
 
 
@@ -81,9 +82,18 @@ export class HumanPilot extends Pilot {
             (<any> event).mozMovementY ||
             (<any> event).webkitMovementY || 0;
 
-        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 0.5, this.movementLag);
-        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 0.9, this.movementLag);
-        // this.ship.setRoll(movX * 0.5);
+        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 2.0, this.movementLag);
+        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 5.0, this.movementLag);
+        this.ship.setRoll(movX * 0.2);
+    }
+
+
+    protected onMouseDown(): void {
+        if (!this.canControl || !Realm.pointerLocked) {
+            return;
+        }
+
+        this.ship.shoot();
     }
 
 

@@ -16,35 +16,6 @@ import {Random} from "../Utils/Random";
 declare const Realm: RealmClass;
 
 
-export enum BuildingShape {
-    RECTANGULAR,
-    SQUARE,
-    HEXAGON,
-    COMPLEX_1,
-}
-
-
-export enum SideType {
-    BLANK,
-    BLANK_WALL,
-    VERTICAL_WALL,
-    HORIZONTAL_WALL,
-    PLATFORM,
-}
-
-
-export enum PlatformShape {
-    ROUND,
-}
-
-
-export enum AntennaType {
-    THIN_CUSTOMIZABLE,
-    COMPLEX_1,
-}
-
-
-
 export class BuildingSectionScaffold extends BABYLON.Mesh {
 
     public darks: BABYLON.VertexData = Building.VertexData();

@@ -25,6 +25,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     public direction: number = 1;
     public shipsConnected: StarShip[] = [];
     public hasNPCs: boolean = true;
+    public NPCsSpawnDirection: number = 1;
 
     protected rand1: Random;
     protected rand2: Random;
@@ -37,7 +38,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     private startArcAngle: number = -15 * Math.PI / 180;
     private arcAngleDelta: number;
     private lastArcAngle: number;
-    private NPCDelayMax: number = 60;
+    private NPCDelayMax: number = 120;
     private NPCDelay: number = this.NPCDelayMax;
 
 
@@ -131,20 +132,62 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     }
 
 
+    protected captureShip(ship: StarShip, section: TrafficSection, aim: BABYLON.Vector3): void {
+        section = this.findSection(ship, 0, this.direction === 1 ? -1 : 1);
+        const dist: number = BABYLON.Vector3.DistanceSquared(ship.position,
+                section.position.add(new BABYLON.Vector3(0, 4, 0)));
+        ship.speed = Realm.calculateLag(ship.speed, ship.maxSpeed * (15**2 / dist)**2 * 2, 50);
+
+        if (ship.speed > ship.maxSpeed) {
+            ship.speed = ship.maxSpeed;
+        }
+
+        if (ship.speed < 0) {
+            ship.speed = 0;
+        }
+
+        if (ship.position.y < section.position.y + 3.5) {
+            ship.speed = Realm.calculateLag(ship.speed, 0, 30);
+            ship.aimYLimit = 5;
+
+            if (ship.position.y < section.position.y + 0.5) {
+                ship.aimYLimit = 10;
+            }
+
+            if (ship.position.y < section.position.y - 0.5) {
+                ship.aimYLimit = 20;
+            }
+        } else {
+            ship.aimYLimit = undefined;
+        }
+    }
+
+
+
     public onRender(): void {
         this.shipsConnected.forEach((ship: StarShip, index: number) => {
             const section: TrafficSection = this.findSection(ship);
-            ship.setImmediateAim(section.position);
+            const aim: BABYLON.Vector3 = section.position.add(new BABYLON.Vector3(0, 5, 0));
 
-            if (!this.hasNPCs) {
+            if (!ship.isAI) {
+                this.captureShip(ship, section, aim);
+                ship.setImmediateAim(aim);
+
                 return;
+            } else {
+                ship.setImmediateAim(aim);
             }
 
-            if ((this.direction == 1 && (section['_index'] + 5) > this.sections.length)
-                    || (this.direction == -1 && section['_index'] < 5)) {
+            if (ship.position.x - 10 > (<any> this.parent).getLeadingPlayer().position.x) {
                 Realm.objects.free(this.getNPCName(), ship);
                 this.shipsConnected.splice(index, 1);
             }
+
+            /*if ((this.direction == 1 && (section['_index'] + 5) > this.sections.length)
+                    || (this.direction == -1 && section['_index'] < 5)) {
+                Realm.objects.free(this.getNPCName(), ship);
+                this.shipsConnected.splice(index, 1);
+            }*/
         });
         
         this.NPCDelay--;
@@ -155,19 +198,27 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
 
         this.NPCDelay = this.NPCDelayMax;
 
-        if (!this.hasNPCs || this.rand1.number < 0.8 || !Realm.objects.hasFree(this.getNPCName())) {
+        if (!this.hasNPCs || this.rand1.number < 0.6 || !Realm.objects.hasFree(this.getNPCName())) {
             return;
         }
 
         const npc: NPCStarShip = <NPCStarShip> Realm.objects.grab(this.getNPCName());
         npc.speed = npc.maxSpeed;
 
-        if (this.direction === 1) {
-            npc.position = this.sections[0].position.clone();
-            npc.setImmediateAim(this.sections[3].position.subtract(this.position));
-        } else  {
-            npc.position = this.sections[this.sections.length - 2].position.clone();
-            npc.setImmediateAim(this.sections[this.sections.length - 5].position.subtract(this.position));
+
+        if (this.NPCsSpawnDirection === 1) {
+            if (this.direction === 1) {
+                npc.position = this.sections[0].position.clone();
+                npc.setImmediateAim(this.sections[3].position.subtract(this.position));
+            } else  {
+                npc.position = this.sections[this.sections.length - 2].position.clone();
+                npc.setImmediateAim(this.sections[this.sections.length - 5].position.subtract(this.position));
+            }
+        } else {
+            // Always looks ahead
+
+            npc.position = this.sections[this.sections.length - 5].position.clone();
+            npc.setImmediateAim(this.sections[this.sections.length - 2].position.subtract(this.position));
         }
 
         this.connectShip(npc);
@@ -238,8 +289,8 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     }
 
 
-    private findSection(ship: StarShip, offset: number = 3): TrafficSection {
-        let current: number = ship['_lastSectionIndex'] || this.direction === 1 ? 0 : this.sections.length - 1;
+    private findSection(ship: StarShip, offset: number = 3, direction: number = this.direction): TrafficSection {
+        let current: number = ship['_lastSectionIndex'] || direction === 1 ? 0 : this.sections.length - 1;
         let last: number;
 
         for (; current !== undefined && current !== last; current =
@@ -247,8 +298,11 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
             last = current;
         }
 
-        ship['_lastSectionIndex'] = last;
-        return this.sections[this.nextSectionIndex(last + offset * this.direction)];
+        if (direction === this.direction) {
+            ship['_lastSectionIndex'] = last;
+        }
+
+        return this.sections[this.nextSectionIndex(last + offset * direction)];
     }
 
 }

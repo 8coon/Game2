@@ -48,6 +48,12 @@ export class RealmClass {
         this.objects = new ObjectFactory();
         this.meshesLoader = new Loader();
 
+        this.canvas.style.height = '100%';
+        this.canvas.style.width = '100%';
+
+        /*BABYLON.SceneOptimizer.OptimizeAsync(this.scene,
+            BABYLON.SceneOptimizerOptions.HighDegradationAllowed()
+        );*/
         this.scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
         this.canvas.addEventListener('click', () => {
@@ -94,20 +100,32 @@ export class RealmClass {
                         return;
                     }
 
-                    mesh.renderingGroupId = 1;
+                    if (!(mesh instanceof BABYLON.InstancedMesh)) {
+                        mesh.renderingGroupId = 1;
+                    }
                 });
+
+                let even: boolean = true;
 
                 this.engine.runRenderLoop(() => {
                     const newMillis: number = RealmClass.now();
 
                     this.timeDelta = newMillis - oldMillis;
-                    // this.animModifier = this.timeDelta / (1000 / 60);
-                    this.animModifier = 1;
-                    this.fps = Math.floor(60 / (this.timeDelta / (1000 / 60)));
-                    this.render();
+                    this.animModifier = 1 / (this.timeDelta / (1000 / 60));
+
+                    // document.title = `AM: ${this.animModifier}`;
+
+                    //this.fps = Math.floor(60 / (this.timeDelta / (1000 / 60)));
+                    this.fps = Math.floor(60 * this.animModifier);
+                    this.animModifier = 1.2;
+                    //even = !even;
+
+                    //if (even) {
+                        this.render();
+                    //}
 
                     oldMillis = newMillis;
-                    document.title = `FPS: ${this.fps}`;
+                    document.title = `, FPS: ${this.fps}`;
                 });
 
                 this.changeState('offlineGame');
@@ -212,6 +230,7 @@ export class RealmClass {
 
 
     public calculateLag(oldValue: number, newValue: number, lag: number): number {
+        lag /= this.animModifier;
         return (oldValue * lag + newValue) / (lag + 1);
     }
 

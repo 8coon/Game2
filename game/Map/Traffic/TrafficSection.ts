@@ -18,18 +18,22 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
     public colorProgress: number = 0;
     public hasCrossingAttached: boolean = false;
     public random: Random;
+    protected trueLength: number;
+    public zAllowed: number = 15;
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: BABYLON.Node, length: number, random: Random) {
         super(name, scene, parent);
         this.length = length;
         this.random = random;
+
         const trueLength: number = this.length * 1.1;
+        this.trueLength = trueLength;
 
         this.shape = BABYLON.Mesh.CreateCylinder(
             'shape',
             trueLength,  // height
-            0.6, 0.6,  // diameterTop, diameterBottom
+            3.2, 3.2,  // diameterTop, diameterBottom
             6,  // tessellation
             1,  // subdivisions
             scene,
@@ -37,11 +41,11 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
 
         this.shape.position.x = -this.length;
         this.shape.rotation.z = 0.5 * Math.PI;
-        this.shape.material = new BABYLON.StandardMaterial('shapeMaterial', scene);
+        //this.shape.material = new BABYLON.StandardMaterial('shapeMaterial', scene);
         this.shape.parent = this;
-        (<any> this.shape.material).diffuseColor = TrafficSection.INACTIVE_COLOR;
+        /*(<any> this.shape.material).diffuseColor = TrafficSection.INACTIVE_COLOR;
         (<any> this.shape.material).emissiveColor = TrafficSection.ACTIVE_COLOR;
-        (<any> this.shape.material).emissiveIntensity = 0.0;
+        (<any> this.shape.material).emissiveIntensity = 0.0;*/
         // (<any> this.shape.material).alpha = 0.9;
 
         this.shape.isVisible = false;
@@ -84,18 +88,7 @@ export class TrafficSection extends BABYLON.Mesh implements IObject {
     }
 
     public onRender(): void {
-        let ratio: number = Math.sin(1.1 * this.colorProgress);
-        ratio = Math.round(ratio * 3) / 3;
-
-        (<any> this.shape.material).emissiveIntensity = ratio;
-        // (<any> this.shape.material).alpha = 1 - ratio * 0.7;
-        (<any> this.shape.material).emissiveColor = Realm.mixColors(
-            TrafficSection.INACTIVE_COLOR,
-            TrafficSection.ACTIVE_COLOR,
-            ratio,
-        );
-
-        this.colorProgress += this.colorProgressStep;
+        // this.colorProgress += this.colorProgressStep;
 
         if (this.colorProgress > Math.PI) {
             this.colorProgress = 0;
