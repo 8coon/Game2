@@ -5,6 +5,7 @@ import {RealmClass} from "../Realm/Realm";
 import {IObject} from "../ObjectFactory/ObjectFactory";
 import {Pilot} from "../Pilots/Pilot";
 import {AnimatedValue, Animation} from "../Animation/AnimatedValue";
+import {OfflineGameState} from "../States/OfflineGameState";
 
 
 declare const Realm: RealmClass;
@@ -18,10 +19,13 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public pilot: Pilot;
 
     public speed: number = 0;
-    public maxSpeed: number = 0.07 * 2;
+    public maxSpeed: number = 0.07 * 12;
     public aimLag: number = 20;
     public aimFrames: number = 60;
     public aimTime: number = 1500;
+    public flew: number = 0;
+    public health: number = 0;
+    public maxHealth: number = 100;
 
     public direction: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private _aim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
@@ -29,6 +33,19 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private zRotation: number = 0;
     private zNextRotation: number = 0;
+    private aimResolve;
+    private hasLight: boolean;
+
+    public aimYLimit: number;
+    public isAI: boolean = false;
+
+
+    constructor(name: string, scene: BABYLON.Scene, hasLight: boolean = true) {
+        super(name, scene);
+        this.hasLight = hasLight;
+
+        Realm.meshesLoader.queue(this.modelName, '/static/models/', 'spaceship.obj');
+    }
 
 
     public get aim(): BABYLON.Vector3 {
@@ -43,32 +60,40 @@ export class StarShip extends BABYLON.Mesh implements IObject {
                 Animation.LINEAR);
     }
 
-    private aimResolve;
 
+    public shoot(): void {
+        let bulletName: string = 'greenBullet';
 
-    constructor(name: string, scene: BABYLON.Scene) {
-        super(name, scene);
+        if (this.isAI) {
+            bulletName = 'redBullet';
+        }
 
-        Realm.meshesLoader.queue(this.modelName, '/static/models/', 'spaceship.obj');
+        if (!Realm.objects.hasFree(bulletName)) {
+            return;
+        }
+
+        (<any> Realm.objects.grab(bulletName)).fire(this, this.position, this.direction);
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
         this.ship = Realm.meshesLoader.retrieve(this.modelName).clone('ship');
         this.ship.parent = this;
-        this.ship.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
+        this.ship.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3);
         this.ship.rotation = new BABYLON.Vector3(Math.PI, 0.5 * Math.PI, 0.5 * Math.PI);
         this.ship.setEnabled(true);
 
-        this.light = new BABYLON.HemisphericLight(
-            'light',
-            new BABYLON.Vector3(0, 5, 1),
-            this.getScene(),
-        );
+        if (this.hasLight) {
+            this.light = new BABYLON.HemisphericLight(
+                'light',
+                new BABYLON.Vector3(0, 5, 1),
+                this.getScene(),
+            );
 
-        this.light.parent = this;
-        this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
-        this.light.intensity = 0.3;
+            this.light.parent = this;
+            this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
+            this.light.intensity = 0.9;
+        }
     }
 
 
@@ -95,7 +120,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
     public setRoll(roll: number): void {
         if (Math.abs(roll) < 5) {
-            roll = 0;
+            roll *= 0.5;
         }
 
         this.zNextRotation = 1.7 * roll;
@@ -111,6 +136,11 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public onRender(): void {
+        if (this.health < 0) {
+            this.setEnabled(false);
+            return;
+        }
+
         if (this.pilot) {
             this.pilot.think();
         }
@@ -124,6 +154,12 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
             this.lastLocalRealAim.addInPlace(correct.scale(0.05 * Math.min(1,
                     this.localRealAim.progress * 1.5)));
+        }
+
+        if (this.aimYLimit !== undefined) {
+            if (this.lastLocalRealAim.y < this.aimYLimit) {
+                this.lastLocalRealAim.y = this.aimYLimit;
+            }
         }
 
         this.direction = Realm.calculateVectorLag(this.direction, this.lastLocalRealAim.clone().normalize(),
@@ -154,11 +190,25 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
     public onGrab(): void {
         this.setEnabled(true);
+        this.health = this.maxHealth;
+
+        (<OfflineGameState> Realm.state).ships.push(this);
     }
 
 
     public onFree(): void {
         this.setEnabled(false);
+
+        if (!Realm.state || !(<OfflineGameState> Realm.state).ships) {
+            return;
+        }
+
+        (<OfflineGameState> Realm.state).ships.splice(
+                (<OfflineGameState> Realm.state).ships.indexOf(this), 1);
+    }
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
 }

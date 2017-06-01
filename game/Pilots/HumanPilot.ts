@@ -21,23 +21,25 @@ export class HumanPilot extends Pilot {
 
         document.addEventListener('keydown', () => { this.onKeyDown(); });
         document.addEventListener('mousemove', (ev) => { this.onMouseMove(ev); });
+        document.addEventListener('mousedown', (ev) => { this.onMouseDown(); });
     }
 
 
     public grabShip(): void {
         this.canControl = true;
         Realm.camera.follow(this.ship);
+        this.ship.speed = this.ship.maxSpeed;
 
-        Promise.resolve().then(() => {
-            this.ship.position = new BABYLON.Vector3(-5, 0, 0);
+        /*Promise.resolve().then(() => {
+            this.ship.position = new BABYLON.Vector3(5, 0, 0);
             this.ship.setImmediateAim(new BABYLON.Vector3(-10, -1, 0));
             this.ship.speed = this.ship.maxSpeed;
 
             return this.ship.atAim();
         }).then(() => {
-            //this.canControl = true;
+            this.canControl = true;
             Realm.camera.follow(this.ship);
-        });
+        });*/
 
         // this.canControl = false;
 
@@ -80,9 +82,18 @@ export class HumanPilot extends Pilot {
             (<any> event).mozMovementY ||
             (<any> event).webkitMovementY || 0;
 
-        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 0.5, this.movementLag);
-        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 0.9, this.movementLag);
-        // this.ship.setRoll(movX * 0.5);
+        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 2.0, this.movementLag);
+        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 5.0, this.movementLag);
+        this.ship.setRoll(movX * 0.2);
+    }
+
+
+    protected onMouseDown(): void {
+        if (!this.canControl || !Realm.pointerLocked) {
+            return;
+        }
+
+        this.ship.shoot();
     }
 
 

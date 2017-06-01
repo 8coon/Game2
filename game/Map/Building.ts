@@ -1,7 +1,6 @@
 import BABYLON from "../../static/babylon";
 import {RealmClass} from "../Realm/Realm";
 import {IObject} from "../ObjectFactory/ObjectFactory";
-import {Random} from "./OfflineMap";
 import Vector2 = BABYLON.Vector2;
 import Vector3 = BABYLON.Vector3;
 import Matrix = BABYLON.Matrix;
@@ -11,38 +10,10 @@ import {
     BuildingShapeBuilder, RectangularBuildingShapeBuilder,
     SquareBuildingShapeBuilder, HexagonBuildingShapeBuilder, Complex1BuildingShapeBuilder
 } from "./BuildingShapeBuilder";
+import {Random} from "../Utils/Random";
 
 
 declare const Realm: RealmClass;
-
-
-export enum BuildingShape {
-    RECTANGULAR,
-    SQUARE,
-    HEXAGON,
-    COMPLEX_1,
-}
-
-
-export enum SideType {
-    BLANK,
-    BLANK_WALL,
-    VERTICAL_WALL,
-    HORIZONTAL_WALL,
-    PLATFORM,
-}
-
-
-export enum PlatformShape {
-    ROUND,
-}
-
-
-export enum AntennaType {
-    THIN_CUSTOMIZABLE,
-    COMPLEX_1,
-}
-
 
 
 export class BuildingSectionScaffold extends BABYLON.Mesh {
@@ -62,12 +33,17 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
 
 
     constructor(random: Random, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh,
-                isSmall: boolean, args: object) {
+                isSmall: boolean, args: object, isTop: boolean) {
         super(name, scene, parent);
         this.random = random;
         this.isSmall = isSmall;
 
-        this.floors = this.random.range(30, 40);
+        this.floors = this.random.range(80, 100);
+
+        if (isTop) {
+            this.floors = this.random.range(20, 50);
+        }
+
         args['floors'] = this.floors;
 
         let shapes: any[] = [RectangularBuildingShapeBuilder, SquareBuildingShapeBuilder];
@@ -132,6 +108,7 @@ export class Building extends BABYLON.Mesh implements IObject {
     public upperScaffold: BuildingSectionScaffold;
     public isSmall: boolean;
     public args: object = {};
+    public height: number = 0;
 
 
     constructor(seed: number, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh) {
@@ -141,21 +118,25 @@ export class Building extends BABYLON.Mesh implements IObject {
 
         if (this.isSmall) {
             this.lowerScaffold = new BuildingSectionScaffold(this.random, 'lowerScaffold', scene, this,
-                    true, this.args);
+                    true, this.args, false);
+            this.height = this.lowerScaffold.height;
         } else {
             this.lowerScaffold = new BuildingSectionScaffold(this.random, 'lowerScaffold', scene, this,
-                    false, this.args);
+                    false, this.args, false);
 
             const upperPos: Vector3 = this.args['nextPosition'];
             this.upperScaffold = new BuildingSectionScaffold(this.random, 'upperScaffold', scene, this,
-                    true, this.args);
+                    true, this.args, true);
             this.upperScaffold.position = upperPos;
+            this.height = this.lowerScaffold.height + this.upperScaffold.height;
         }
 
+        //this.material = new StandardMaterial('material', scene);
+        //this.material.alpha = 0;
     }
 
 
-    public onLoad(): void {
+    public onCreate(): void {
     }
 
     public onGrab(): void {
@@ -165,7 +146,17 @@ export class Building extends BABYLON.Mesh implements IObject {
     }
 
     public onRender(): void {
-        this.rotation.y += 0.01;
+        /*if (this.visibility < 1) {
+            this.visibility += 0.05;
+        }
+
+        if (this.visibility > 1) {
+            this.visibility = 1;
+        }*/
+    }
+
+    public onDelete(): void {
+        this.dispose(true);
     }
 
 
