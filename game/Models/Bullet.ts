@@ -70,6 +70,11 @@ export class Bullet {
             const speed = 15;
 
             bullet.position = position.clone();
+
+            if (!jedi) {
+                bullet.position.x += 5;
+            }
+
             bullet['_direction'] = direction.normalize().scale(speed);
             bullet.lookAt(bullet.position.add(bullet['_direction']));
             bullet['_flew'] = 0;

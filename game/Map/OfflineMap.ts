@@ -9,6 +9,7 @@ import {StarShip} from "../Models/StarShip";
 import {NPCStarShip} from "../Models/NPCStarShip";
 import {Building} from "./Building";
 import {Bullet} from "../Models/Bullet";
+import {PoliceStarShip} from "../Models/PoliceStarShip";
 
 
 declare const Realm: RealmClass;
@@ -22,6 +23,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     public mainTrafficLine: MainTrafficLine;
     public NPCName: string;
     public buildingName: string;
+    public policeShips: PoliceStarShip[] = [];
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, random: Random) {
@@ -49,7 +51,11 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         });
 
         Realm.objects.addObject('redBullet', 200, (): IObject => {
-            return Bullet.createBullet('redBullet', this, true);
+            return Bullet.createBullet('redBullet', this, false);
+        });
+
+        Realm.objects.addObject('policeStarShip', 10, (): IObject => {
+            return new PoliceStarShip('police', scene);
         });
 
 
@@ -74,6 +80,46 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
 
     public onDelete(): void {
         this.dispose(true);
+    }
+
+
+    public spawnPoliceShip(): void {
+        if (!Realm.objects.hasFree('policeStarShip')) {
+            return;
+        }
+
+        const ship: PoliceStarShip = <PoliceStarShip> Realm.objects.grab('policeStarShip');
+        ship.position = this.mainTrafficLine.getLastSection().position.clone();
+        ship.position.y += 50;
+        ship.speed = ship.maxSpeed;
+
+        const doRender = ship.onRender;
+        let shootInterval: number = 0;
+
+        ship.onRender = () => {
+            ship.setImmediateAim(ship.position.subtract(this.getLeadingPlayer().position));
+            //ship.aim = this.getLeadingPlayer().position.add(new BABYLON.Vector3(-5, 0, 0));
+            shootInterval++;
+
+            if (shootInterval > 300) {
+                shootInterval = 0;
+                ship.shoot();
+            }
+
+            if (ship.position.x - 10 > this.getLeadingPlayer().position.x) {
+                this.deletePoliceShip(ship);
+            }
+
+            doRender.call(ship);
+        };
+
+        this.policeShips.push(ship);
+    }
+
+
+    public deletePoliceShip(ship: PoliceStarShip): void {
+        Realm.objects.free('policeStarShip', ship);
+        this.policeShips.splice(this.policeShips.indexOf(ship), 1);
     }
 
 
@@ -137,10 +183,6 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
 
 
     public onRender(): void {
-        if (!this.parent) {
-            return;
-        }
-
         this.trafficLines.forEach((line: TrafficLine, index: number) => {
             if ((<OfflineGameState> this.parent).getLeadingPlayerPos().x - line.position.x < -10) {
                 Realm.objects.free(`${this.name}_trafficLine`, line);
@@ -153,6 +195,10 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         if ((<OfflineGameState> this.parent).getLeadingPlayerPos().x -
                     this.mainTrafficLine.sections[0].position.x < -40) {
             this.mainTrafficLine.generateNextSection();
+        }
+
+        if (this.random.number < 0.01) {
+            this.spawnPoliceShip();
         }
     }
 
