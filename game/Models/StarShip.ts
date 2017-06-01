@@ -32,6 +32,9 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     private aimResolve;
     private hasLight: boolean;
 
+    public aimYLimit: number;
+    public isAI: boolean = false;
+
 
     constructor(name: string, scene: BABYLON.Scene, hasLight: boolean = true) {
         super(name, scene);
@@ -51,6 +54,21 @@ export class StarShip extends BABYLON.Mesh implements IObject {
         const newLocalAim: BABYLON.Vector3 = this._aim.subtract(this.position);
         this.localRealAim = new AnimatedValue<BABYLON.Vector3>(this.localRealAim.value, newLocalAim, this.aimTime,
                 Animation.LINEAR);
+    }
+
+
+    public shoot(): void {
+        let bulletName: string = 'greenBullet';
+
+        if (this.isAI) {
+            bulletName = 'redBullet';
+        }
+
+        if (!Realm.objects.hasFree(bulletName)) {
+            return;
+        }
+
+        (<any> Realm.objects.grab(bulletName)).fire(this.position, this.direction);
     }
 
 
@@ -127,6 +145,12 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
             this.lastLocalRealAim.addInPlace(correct.scale(0.05 * Math.min(1,
                     this.localRealAim.progress * 1.5)));
+        }
+
+        if (this.aimYLimit !== undefined) {
+            if (this.lastLocalRealAim.y < this.aimYLimit) {
+                this.lastLocalRealAim.y = this.aimYLimit;
+            }
         }
 
         this.direction = Realm.calculateVectorLag(this.direction, this.lastLocalRealAim.clone().normalize(),

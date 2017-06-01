@@ -25,6 +25,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     public direction: number = 1;
     public shipsConnected: StarShip[] = [];
     public hasNPCs: boolean = true;
+    public NPCsSpawnDirection: number = 1;
 
     protected rand1: Random;
     protected rand2: Random;
@@ -145,9 +146,19 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
             ship.speed = 0;
         }
 
-        if (ship.position.y < section.position.y + 2) {
-            ship.speed = Realm.calculateLag(ship.speed, 0, 7);
-            aim.y += 400;
+        if (ship.position.y < section.position.y + 3.5) {
+            ship.speed = Realm.calculateLag(ship.speed, 0, 30);
+            ship.aimYLimit = 5;
+
+            if (ship.position.y < section.position.y + 0.5) {
+                ship.aimYLimit = 10;
+            }
+
+            if (ship.position.y < section.position.y - 0.5) {
+                ship.aimYLimit = 20;
+            }
+        } else {
+            ship.aimYLimit = undefined;
         }
     }
 
@@ -158,14 +169,13 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
             const section: TrafficSection = this.findSection(ship);
             const aim: BABYLON.Vector3 = section.position.add(new BABYLON.Vector3(0, 5, 0));
 
-            if (!this.hasNPCs) {
+            if (!ship.isAI) {
                 this.captureShip(ship, section, aim);
-            }
+                ship.setImmediateAim(aim);
 
-            ship.setImmediateAim(aim);
-
-            if (!this.hasNPCs) {
                 return;
+            } else {
+                ship.setImmediateAim(aim);
             }
 
             if ((this.direction == 1 && (section['_index'] + 5) > this.sections.length)
@@ -190,12 +200,20 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         const npc: NPCStarShip = <NPCStarShip> Realm.objects.grab(this.getNPCName());
         npc.speed = npc.maxSpeed;
 
-        if (this.direction === 1) {
-            npc.position = this.sections[0].position.clone();
-            npc.setImmediateAim(this.sections[3].position.subtract(this.position));
-        } else  {
-            npc.position = this.sections[this.sections.length - 2].position.clone();
-            npc.setImmediateAim(this.sections[this.sections.length - 5].position.subtract(this.position));
+
+        if (this.NPCsSpawnDirection === 1) {
+            if (this.direction === 1) {
+                npc.position = this.sections[0].position.clone();
+                npc.setImmediateAim(this.sections[3].position.subtract(this.position));
+            } else  {
+                npc.position = this.sections[this.sections.length - 2].position.clone();
+                npc.setImmediateAim(this.sections[this.sections.length - 5].position.subtract(this.position));
+            }
+        } else {
+            // Always looks ahead
+
+            npc.position = this.sections[this.sections.length - 5].position.clone();
+            npc.setImmediateAim(this.sections[this.sections.length - 2].position.subtract(this.position));
         }
 
         this.connectShip(npc);

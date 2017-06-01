@@ -10,9 +10,12 @@ declare const Realm: RealmClass;
 
 export class NPCStarShip extends StarShip {
 
+    public isAI: boolean = true;
+    public maxSpeed: number = 0.07 * 4;
+
+
     constructor(name: string, scene: BABYLON.Scene) {
         super(name, scene, false);
-        this.maxSpeed *= 0.5;
     }
 
 }

@@ -8,7 +8,7 @@ import {MainTrafficLine} from "./Traffic/MainTrafficLine";
 import {StarShip} from "../Models/StarShip";
 import {NPCStarShip} from "../Models/NPCStarShip";
 import {Building} from "./Building";
-import {MainTrafficSection} from "./Traffic/MainTrafficSection";
+import {Bullet} from "../Models/Bullet";
 
 
 declare const Realm: RealmClass;
@@ -21,13 +21,14 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     public trafficLineCount: number = 4;
     public mainTrafficLine: MainTrafficLine;
     public NPCName: string;
-    public buildingName: string = `${this.name}__building`;
+    public buildingName: string;
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineGameState, random: Random) {
         super(name, scene, parent);
         this.random = random;
         this.NPCName = `${name}_NPC`;
+        this.buildingName = `${name}__building`;
         let i = 0;
 
         Realm.objects.addObject(`${name}_trafficLine`, this.trafficLineCount, (): IObject => {
@@ -42,6 +43,15 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
         Realm.objects.addObject(this.NPCName, 100, (): IObject => {
             return new NPCStarShip(this.NPCName, scene);
         });
+
+        Realm.objects.addObject('greenBullet', 50, (): IObject => {
+            return Bullet.createBullet('greenBullet', this, true);
+        });
+
+        Realm.objects.addObject('redBullet', 200, (): IObject => {
+            return Bullet.createBullet('redBullet', this, true);
+        });
+
 
         const seedMapping: number[] = [];
         const buildingsBufferSize: number = 60;
@@ -150,6 +160,5 @@ export class OfflineMap extends BABYLON.Mesh implements IObject{
     public getBuildingName(): string {
         return this.buildingName;
     }
-
 
 }

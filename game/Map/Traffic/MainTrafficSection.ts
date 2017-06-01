@@ -75,7 +75,20 @@ export class MainTrafficSection extends TrafficSection implements IObject {
 
         this.shape.dispose();
         this.shape = newShape;
-        //MainTrafficSection.shape = newShape;
+
+        /*const positions = newShape.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        const normals = newShape.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        const colors = newShape.getVerticesData(BABYLON.VertexBuffer.ColorKind);
+        const uvs = newShape.getVerticesData(BABYLON.VertexBuffer.UVKind);
+        const indices = newShape.getIndices();
+
+        this.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+        this.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+        this.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+        this.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
+        this.setIndices(indices);*/
+
+        //newShape.dispose();
     }
 
 
@@ -174,8 +187,8 @@ export class MainTrafficSection extends TrafficSection implements IObject {
 
         super.onRender();
 
-        (<any> this.shape.material)/*.subMaterials[0]*/.emissiveIntensity = ratio;
-        (<any> this.shape.material)/*.subMaterials[0]*/.emissiveColor = Realm.mixColors(
+        (<any> this.shape.material).emissiveIntensity = ratio;
+        (<any> this.shape.material).emissiveColor = Realm.mixColors(
             TrafficSection.INACTIVE_COLOR,
             TrafficSection.ACTIVE_COLOR,
             ratio,
