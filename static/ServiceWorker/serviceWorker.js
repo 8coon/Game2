@@ -1,12 +1,7 @@
 const CACHE_NAME = 'app_serviceworker_v_1';
 
 const cacheUrls = [
-    '/',
-    '/jsworks',
-    '/babylonjs',
-    '/font-awesome',
-    '/static',
-    '/static/'
+
 ];
 
 self.addEventListener('install', function (event) {
