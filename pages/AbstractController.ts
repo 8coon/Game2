@@ -1,7 +1,5 @@
 import {RealmClass} from "../game/Realm/Realm";
 import {JSWorksLib} from "jsworks/dist/dts/jsworks";
-import {SimpleVirtualDOMElement} from "jsworks/dist/dts/VirtualDOM/SimpleVirtualDOM/SimpleVirtualDOMElement";
-import {UserModel} from "../models/UserModel";
 
 
 declare let Realm: RealmClass;
@@ -11,6 +9,7 @@ declare const JSWorks: JSWorksLib;
 export abstract class AbstractController {
 
     public gameCanvasId: string = 'game-canvas';
+    public isGame: boolean = false;
     private pointerLockSet: boolean = false;
 
 
@@ -20,11 +19,11 @@ export abstract class AbstractController {
             Realm.init();
         }
 
-        if (this.pointerLockSet) {
+        if (!this.isGame || this.pointerLockSet) {
             return;
         }
 
-        document.querySelector('#game-hud').addEventListener('click', () => {
+        document.querySelector('.game-content').addEventListener('click', () => {
             Realm.setPointerLock();
         });
 

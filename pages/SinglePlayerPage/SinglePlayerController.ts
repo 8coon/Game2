@@ -10,6 +10,8 @@ declare const Realm: RealmClass;
 @JSWorks.Controller
 export class SinglePlayerController extends AbstractController {
 
+    public isGame: boolean = true;
+
 
     public onNavigate(args: object):void {
         super.onNavigate(args);

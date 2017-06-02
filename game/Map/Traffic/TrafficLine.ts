@@ -123,6 +123,13 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         Realm.objects.freeAll(`${this.name}__mapSection`);
         this.sections = [];
         this.vectors = [];
+
+        this.shipsConnected.forEach((ship: StarShip) => {
+            if (ship.isAI) {
+                Realm.objects.free(this.getNPCName(), ship);
+            }
+        });
+
         this.shipsConnected = [];
     }
 
@@ -136,7 +143,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         section = this.findSection(ship, 0, this.direction === 1 ? -1 : 1);
         const dist: number = BABYLON.Vector3.DistanceSquared(ship.position,
                 section.position.add(new BABYLON.Vector3(0, 4, 0)));
-        ship.speed = Realm.calculateLag(ship.speed, ship.maxSpeed * (15**2 / dist)**2 * 2, 50);
+        ship.speed = Realm.calculateLag(ship.speed, ship.maxSpeed * (7.5**2 / dist)**2 * 2, 100);
 
         if (ship.speed > ship.maxSpeed) {
             ship.speed = ship.maxSpeed;
@@ -192,13 +199,13 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         
         this.NPCDelay--;
 
-        if (this.NPCDelay !== 0) {
+        if (this.NPCDelay > 0) {
             return;
         }
 
         this.NPCDelay = this.NPCDelayMax;
 
-        if (!this.hasNPCs || this.rand1.number < 0.6 || !Realm.objects.hasFree(this.getNPCName())) {
+        if (!this.hasNPCs || this.rand1.number > 0.4 || !Realm.objects.hasFree(this.getNPCName())) {
             return;
         }
 
@@ -246,8 +253,8 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
 
         return new BABYLON.Vector3(
             this.rotation.x,
-            this.rotation.y + value1 * 0.5,
-            this.rotation.z + value2 * 0.5,
+            this.rotation.y + value1 * 0.6,
+            this.rotation.z + value2 * 0.6,
         );
     }
 

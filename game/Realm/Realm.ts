@@ -47,6 +47,9 @@ export class RealmClass {
     private score: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-score-value');
     private currentPlace: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-current-place');
     private totalPlaces: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-total-places');
+    private combo: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-combo');
+    private comboValue: HTMLElement = <HTMLElement> this.combo.querySelector('#hud-combo-value');
+    private comboText: HTMLElement = <HTMLElement> this.combo.querySelector('#hud-combo-text');
 
 
     public static now(): number {
@@ -102,6 +105,11 @@ export class RealmClass {
         if (!this.pointerLocked) {
             this.grabPointerLock();
         }
+    }
+
+
+    public getLeadingPlayer(): StarShip {
+        return (<OfflineGameState> this.state).getLeadingPlayer();
     }
 
 
@@ -196,8 +204,12 @@ export class RealmClass {
         this.HUD.classList.toggle('hidden', !value);
     }
 
-    public flashHUD(): void {
-        GUIFlashingAnimation.Visibility(this.HUD, 3, 2000);
+    public flashHUD(): Promise<any> {
+        return GUIFlashingAnimation.Visibility(this.HUD, 3, 1000);
+    }
+
+    public flashCountdown(): Promise<any> {
+        return GUIFlashingAnimation.Visibility(this.HUD.querySelector('#hud-countdown'), 3, 700);
     }
 
     public toggleCountdown(value: boolean, text: string): void {
@@ -215,9 +227,34 @@ export class RealmClass {
         this.score.innerHTML = String(value);
     }
 
+    public flashScore(): void {
+        GUIFlashingAnimation.Visibility(this.score, 3, 500);
+    }
+
     public setPlace(place: number, total: number): void {
         this.currentPlace.innerHTML = String(place);
         this.totalPlaces.innerHTML = String(place);
+    }
+
+    public toggleCombo(current: number): void {
+        if (current === 0) {
+            this.combo.classList.toggle('hidden', true);
+            return;
+        }
+
+        this.combo.classList.toggle('hidden', false);
+        let width: number = current * 10;
+
+        if (width > 100) {
+            width = 100;
+        }
+
+        this.comboValue.style.width = `${width}%`;
+        this.comboText.innerHTML = `Комбо х${current}`;
+    }
+
+    public flashCombo(): Promise<any> {
+        return GUIFlashingAnimation.Visibility(this.combo, 3, 500);
     }
 
 
