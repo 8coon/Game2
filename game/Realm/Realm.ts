@@ -55,6 +55,9 @@ export class RealmClass {
     private continueBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__continue');
     private exitBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__exit');
 
+    private gameOver: HTMLElement = <HTMLElement> document.querySelector('#gameover');
+    private scoreResult: HTMLElement = <HTMLElement> this.gameOver.querySelector('#gameover__score');
+
     private running: boolean = true;
 
     public static now(): number {
@@ -107,6 +110,8 @@ export class RealmClass {
             this.pauseMenu.style.display = 'none';
             this.running = true;
         });
+
+
 
         this.meshesLoader.taskAdder = (self, name, root, file) => {
             return this.scene.loader.addMeshTask(name, '', root, file);
@@ -220,6 +225,11 @@ export class RealmClass {
         content.classList.toggle('blurred', value);
         loader.toggleClass('hidden', !value);
         loader.querySelector('.loader-text').innerHTML = text;
+    }
+
+
+    public toogleGameOver(value: boolean): void {
+        this.gameOver.style.display = (value) ? 'flex' : 'none';
     }
 
 

@@ -162,10 +162,9 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
     width: 100%;
     vertical-align: middle;
     color: #fff;
-    font-size: 16px;
+    /*font-size: 16px;*/
     line-height: 20px;
     text-align: center;
-    letter-spacing: 1px;
     background: transparent;
     border: 0;
     cursor: pointer;
