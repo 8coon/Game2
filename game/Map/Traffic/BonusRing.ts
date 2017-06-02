@@ -69,6 +69,7 @@ export class BonusRing extends BABYLON.Mesh implements IObject {
 
         if (dstSquared < 3 && !this.collected) {
             this.collected = true;
+            Realm.scene.bonusSound.play();
             (<OfflineGameState> Realm.state).bonusCollected();
         }
     }

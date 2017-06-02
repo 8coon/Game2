@@ -101,20 +101,31 @@ export class OfflineGameState extends RealmState {
                 Promise.resolve().then(() => {
                     return new Promise((resolve) => {
                         Realm.toggleCountdown(true, '3');
+                        Realm.scene.bonusSound.setPlaybackRate(2.0);
+                        Realm.scene.bonusSound.play();
+
                         window.setTimeout(() => resolve(), 1000);
                     });
                 }).then(() => {
                     return new Promise((resolve) => {
                         Realm.toggleCountdown(true, '2');
+                        Realm.scene.bonusSound.play();
+
                         window.setTimeout(() => resolve(), 1000);
                     });
                 }).then(() => {
                     return new Promise((resolve) => {
                         Realm.toggleCountdown(true, '1');
+                        Realm.scene.bonusSound.play();
+
+                        Realm.scene.engineSound.setVolume(0.02);
+
                         window.setTimeout(() => resolve(), 1000);
                     });
                 }).then(() => {
                     Realm.toggleCountdown(true, 'СТАРТ');
+                    Realm.scene.bonusSound.play();
+
                     this.getLeadingPlayer().canMove = true;
                     (<HumanPilot> this.offlinePlayer.pilot).toggleControl(true);
                     Realm.camera.limited = false;
@@ -122,6 +133,8 @@ export class OfflineGameState extends RealmState {
                     return Realm.flashCountdown();
                 }).then(() => {
                     Realm.toggleCountdown(false, '');
+                    Realm.scene.bonusSound.setPlaybackRate(1.0);
+                    Realm.scene.gameMusic.play();
                 })
             });
         });
@@ -130,11 +143,11 @@ export class OfflineGameState extends RealmState {
 
     public onLeave() {
         Realm.toggleHUD(false);
+        Realm.scene.gameMusic.stop();
 
         this.ships = [];
         Realm.objects.free('offlinePlayer', this.offlinePlayer);
         Realm.objects.free('offlineMap', this.offlineMap);
-
     }
 
 
@@ -164,7 +177,7 @@ export class OfflineGameState extends RealmState {
 
         window.setTimeout(() => {
             Realm.objects.free('explosion', expl);
-        }, 1500)
+        }, 1500);
     }
 
 }

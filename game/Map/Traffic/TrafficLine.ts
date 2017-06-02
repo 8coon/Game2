@@ -143,7 +143,11 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         section = this.findSection(ship, 0, this.direction === 1 ? -1 : 1);
         const dist: number = BABYLON.Vector3.DistanceSquared(ship.position,
                 section.position.add(new BABYLON.Vector3(0, 4, 0)));
-        ship.speed = Realm.calculateLag(ship.speed, ship.maxSpeed * (7.5**2 / dist)**2 * 2, 100);
+        const speed: number = Realm.calculateLag(ship.speed, ship.maxSpeed * (7.5**2 / dist)**2 * 2, 100);
+
+        if (ship.canMove) {
+            ship.speed = speed;
+        }
 
         if (ship.speed > ship.maxSpeed) {
             ship.speed = ship.maxSpeed;

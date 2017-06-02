@@ -175,6 +175,10 @@ export class StarShip extends BABYLON.Mesh implements IObject {
             this.pilot.think();
         }
 
+        if (!this.isAI) {
+            Realm.scene.engineSound.setPlaybackRate(this.speed * 2 + 1.0);
+        }
+
         this.localRealAim.onRender();
         this.lastLocalRealAim = this.localRealAim.value;
 
@@ -226,11 +230,19 @@ export class StarShip extends BABYLON.Mesh implements IObject {
         this.health = this.maxHealth;
 
         (<OfflineGameState> Realm.state).ships.push(this);
+
+        if (!this.isAI) {
+            Realm.scene.engineSound.play();
+        }
     }
 
 
     public onFree(): void {
         this.setEnabled(false);
+
+        if (!this.isAI) {
+            Realm.scene.engineSound.stop();
+        }
 
         if (!Realm.state || !(<OfflineGameState> Realm.state).ships) {
             return;

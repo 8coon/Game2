@@ -91,7 +91,7 @@ export class MainTrafficSection extends TrafficSection implements IObject {
         MainTrafficSection.beforeNextRing++;
         this.bonusRing.setEnabled(false);
 
-        if (MainTrafficSection.beforeNextRing > 5) {
+        if (MainTrafficSection.beforeNextRing > 8) {
             MainTrafficSection.beforeNextRing = 0;
 
             this.bonusRing.position = this.position.add(new BABYLON.Vector3(0, 6, 0));

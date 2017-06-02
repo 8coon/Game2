@@ -52,6 +52,9 @@ export class MenuState extends RealmState {
             building.setEnabled(true);
             building['_trueYPos'] = building.position.y;
         });
+
+        console.log(Realm.scene.menuMusic);
+        Realm.scene.menuMusic.play();
     }
 
 
@@ -63,6 +66,7 @@ export class MenuState extends RealmState {
 
 
     public onLeave() {
+        Realm.scene.menuMusic.stop();
         this.closerBuilding.setEnabled(false);
 
         this.buildings.forEach((building: Building) => {
