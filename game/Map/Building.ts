@@ -180,6 +180,13 @@ export class Building extends BABYLON.Mesh implements IObject {
     }
 
     public onDelete(): void {
+        this.setEnabled(false);
+        this.lowerScaffold.dispose(true);
+
+        if (this.upperScaffold) {
+            this.upperScaffold.dispose(true);
+        }
+
         this.dispose(true);
     }
 

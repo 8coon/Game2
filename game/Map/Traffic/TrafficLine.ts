@@ -136,6 +136,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
 
     public onDelete(): void {
         this.dispose(true);
+        Realm.objects.removeObject(`${name}__mapSection`);
     }
 
 

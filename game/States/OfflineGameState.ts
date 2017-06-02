@@ -90,6 +90,7 @@ export class OfflineGameState extends RealmState {
             Realm.toggleCountdown(false, '');
             Realm.toggleTimer(false, '');
             Realm.toggleCombo(0);
+            Realm.scene.engineSound.setVolume(0);
             Realm.camera.limited = true;
 
             this.offlineMap.startMap();
@@ -100,6 +101,9 @@ export class OfflineGameState extends RealmState {
             Realm.flashHUD().then(() => {
                 Promise.resolve().then(() => {
                     return new Promise((resolve) => {
+                        Realm.scene.menuMusic.stop();
+                        Realm.scene.menuMusic['_shouldNotPlay'] = true;
+
                         Realm.toggleCountdown(true, '3');
                         Realm.scene.bonusSound.setPlaybackRate(2.0);
                         Realm.scene.bonusSound.play();
@@ -143,11 +147,13 @@ export class OfflineGameState extends RealmState {
 
     public onLeave() {
         Realm.toggleHUD(false);
+        Realm.togglePauseMenu(false);
         Realm.scene.gameMusic.stop();
+        Realm.scene.menuMusic['_shouldNotPlay'] = false;
 
         this.ships = [];
-        Realm.objects.free('offlinePlayer', this.offlinePlayer);
-        Realm.objects.free('offlineMap', this.offlineMap);
+        Realm.objects.freeAll('offlinePlayer');
+        Realm.objects.freeAll('offlineMap');
     }
 
 

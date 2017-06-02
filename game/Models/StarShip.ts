@@ -244,6 +244,16 @@ export class StarShip extends BABYLON.Mesh implements IObject {
             Realm.scene.engineSound.stop();
         }
 
+        this.direction = BABYLON.Axis.X.scale(-1);
+        this.cameraDirection = BABYLON.Axis.X.scale(-1);
+        this._aim = BABYLON.Axis.X.scale(-1);
+        this.localRealAim = AnimatedValue.resolve(BABYLON.Axis.X.scale(-1));
+        this.lastLocalRealAim = BABYLON.Axis.X.scale(-1);
+        this.zRotation = 0;
+        this.zNextRotation = 0;
+        this.position = BABYLON.Vector3.Zero();
+        this.rotation = BABYLON.Vector3.Zero();
+
         if (!Realm.state || !(<OfflineGameState> Realm.state).ships) {
             return;
         }

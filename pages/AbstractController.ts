@@ -17,6 +17,8 @@ export abstract class AbstractController {
         if (!Realm) {
             Realm = new RealmClass(this.gameCanvasId);
             Realm.init();
+        } else {
+            Realm.changeState('menu');
         }
 
         if (!this.isGame || this.pointerLockSet) {

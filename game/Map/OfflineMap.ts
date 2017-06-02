@@ -167,6 +167,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject {
 
 
     public onGrab(): void {
+        this.setEnabled(true);
     }
 
 
@@ -206,11 +207,12 @@ export class OfflineMap extends BABYLON.Mesh implements IObject {
         this.started = false;
 
         Realm.objects.freeAll(this.NPCName);
-        Realm.objects.free(`${this.name}_mainTrafficLine`, this.mainTrafficLine);
-        this.trafficLines.forEach((line, i) => Realm.objects.free(`${this.name}_${i}_trafficLine`, line));
+        Realm.objects.freeAll(`${this.name}_mainTrafficLine`);
+        Realm.objects.freeAll(`${this.name}_trafficLine`);
         this.trafficLines = [];
 
         this.freeResources();
+        this.setEnabled(false);
     }
 
 

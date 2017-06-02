@@ -56,6 +56,8 @@ export class RealmClass {
     private exitBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__exit');
 
     private running: boolean = true;
+    public menuPlaying: boolean = true;
+
 
     public static now(): number {
         return window.performance.now();
@@ -85,6 +87,15 @@ export class RealmClass {
                 this.grabPointerLock();
             }
         });*/
+        window.setInterval(() => {
+            if (!this.state) {
+                return;
+            }
+
+            if (!this.scene.menuMusic['_shouldNotPlay'] && !this.scene.menuMusic.isPlaying) {
+                this.scene.menuMusic.play();
+            }
+        }, 1000);
 
         if ('onpointerlockchange' in document) {
             document.addEventListener('pointerlockchange', () => { this.pointerLockChanged(); });
@@ -95,17 +106,28 @@ export class RealmClass {
         }
 
         document.addEventListener('keyup', (e) => {
-            if (e.keyCode == 32) {
-                this.pauseMenu.style.display = 'flex';
-                this.pauseMenu.style.backgroundColor = 'rgba(0,0,0,0.2)';
-                this.running = false;
-                this.dropPointerLock();
+            if (this.state.name === 'offlineGame' && e.keyCode === 32) {
+                this.togglePauseMenu(true);
             }
         });
 
         this.continueBtn.addEventListener('click', () => {
-            this.pauseMenu.style.display = 'none';
-            this.running = true;
+            this.togglePauseMenu(false);
+        });
+
+        this.exitBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.dropPointerLock();
+            document.location.href = '/';
+
+            /*JSWorks.applicationContext.router.navigate(
+                JSWorks.applicationContext.routeHolder.getRoute('MenuRoute'),
+                {}
+            );
+
+            this.changeState('menu');
+            this.togglePauseMenu(false);*/
+            //this.dropPointerLock();
         });
 
         this.meshesLoader.taskAdder = (self, name, root, file) => {
@@ -117,6 +139,19 @@ export class RealmClass {
 
             return task.loadedMeshes[0];
         };
+    }
+
+
+    public togglePauseMenu(value: boolean): void {
+        if (value) {
+            this.pauseMenu.style.display = 'flex';
+            this.pauseMenu.style.backgroundColor = 'rgba(0,0,0,0.2)';
+            this.running = false;
+            this.dropPointerLock();
+        } else {
+            this.pauseMenu.style.display = 'none';
+            this.running = true;
+        }
     }
 
 

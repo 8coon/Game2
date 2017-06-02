@@ -47,6 +47,20 @@ export class ObjectFactory {
 
     public removeObject(name: string): void {
         this.freeAll(name);
+        const objects: Allocated = this.objects.get(name);
+
+        if (!objects) {
+            return;
+        }
+
+        objects.objects.forEach((object: IObject) => {
+            object.onDelete();
+
+            if (object['dispose']) {
+                object['dispose']();
+                console.log('disposing', object);
+            }
+        });
 
         this.objects.delete(name);
         this.objectFactories.delete(name);
