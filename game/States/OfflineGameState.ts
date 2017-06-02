@@ -112,12 +112,12 @@ export class OfflineGameState extends RealmState {
     }
 
     public explodeAt(position: BABYLON.Vector3) {
-        const expl = Realm.objects.grab('explosion');
-        (<Explosion> expl).position = position.clone();
+        const expl: Explosion = (<Explosion> Realm.objects.grab('explosion'));
+        expl.position = position.clone();
 
         window.setTimeout(() => {
             Realm.objects.free('explosion', expl);
-        }, 2000)
+        }, 1500)
     }
 
 }
