@@ -54,6 +54,8 @@ export class MultiplayerController extends AbstractController {
             if (message.type === "init-game") {
                 const content: IInitContentMessage = JSON.parse(message.content);
 
+                console.log('Info: GameSession starts');
+
                 if (content.leader) {
                     socket.send(JSON.stringify({
                         type: 'api.mechanics.base.ClientSnap',
