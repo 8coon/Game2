@@ -21,7 +21,6 @@ export class OfflineGameState extends RealmState {
     public offlineMap: OfflineMap;
     public random: Random;
     public ships: StarShip[] = [];
-    public explosions: Explosion[] = [];
     public HUD: HTMLElement;
 
     private score: number = 0;
@@ -79,7 +78,6 @@ export class OfflineGameState extends RealmState {
         Realm.toggleHUD(false);
 
         this.ships = [];
-        this.explosions = [];
         Realm.objects.free('offlinePlayer', this.offlinePlayer);
         Realm.objects.free('offlineMap', this.offlineMap);
 
@@ -93,6 +91,14 @@ export class OfflineGameState extends RealmState {
         this.score += Math.floor(this.lastPlayerXPos - this.getLeadingPlayerPos().x);
         this.lastPlayerXPos = this.getLeadingPlayerPos().x;
         Realm.setScore(this.score);
+
+        this.ships.forEach(ship => {
+            if (Math.random() > 0.99) {
+                if (Realm.objects.hasFree('explosion')) {
+                    this.explodeAt(ship.position);
+                }
+            }
+        })
     }
 
 
@@ -107,11 +113,9 @@ export class OfflineGameState extends RealmState {
 
     public explodeAt(position: BABYLON.Vector3) {
         const expl = Realm.objects.grab('explosion');
-        let lastPos = (<Explosion> expl).sphere.position;
-        (<Explosion> expl).sphere.position = position.clone();
+        (<Explosion> expl).position = position.clone();
 
         window.setTimeout(() => {
-            // (<Explosion> expl).sphere.position = lastPos;
             Realm.objects.free('explosion', expl);
         }, 2000)
     }

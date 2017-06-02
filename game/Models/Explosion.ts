@@ -20,6 +20,7 @@ export class Explosion extends BABYLON.Mesh implements IObject {
             scene,
         );
 
+        this.sphere.parent = this;
         this.sphere.material = new BABYLON.StandardMaterial('expl', scene);
         this.sphere.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 
@@ -32,26 +33,14 @@ export class Explosion extends BABYLON.Mesh implements IObject {
 
     onGrab(): void {
         this.setEnabled(true);
-        (<OfflineGameState> Realm.state).explosions.push(this);
     }
 
     onFree(): void {
         this.setEnabled(false);
-
-        if (!Realm.state || !(<OfflineGameState> Realm.state).explosions) {
-            return;
-        }
-
-        (<OfflineGameState> Realm.state).explosions.splice(
-            (<OfflineGameState> Realm.state).explosions.indexOf(this), 1);
     }
 
     onRender(): void {
-        (<OfflineGameState> Realm.state).ships.forEach(ship => {
-            if (Math.random() > 0.7) {
-                (<OfflineGameState> Realm.state).explodeAt(ship.position);
-            }
-        })
+
     }
 
     onDelete(): void {
