@@ -9,6 +9,7 @@ import {MainTrafficLine} from "../Map/Traffic/MainTrafficLine";
 import {NPCStarShip} from "../Models/NPCStarShip";
 import {Random} from "../Utils/Random";
 import {OfflineMap} from "../Map/OfflineMap";
+import {Explosion} from "../Models/Explosion";
 
 
 declare const Realm: RealmClass;
@@ -42,6 +43,10 @@ export class OfflineGameState extends RealmState {
 
         Realm.objects.addObject('offlineMap', 1, (): IObject => {
             return new OfflineMap('offlineMap', scene, this, this.random);
+        });
+
+        Realm.objects.addObject('explosion', 10, (): IObject => {
+            return new Explosion('explosion', scene);
         });
 
         this.alpha = 0;
@@ -129,6 +134,7 @@ export class OfflineGameState extends RealmState {
         this.ships = [];
         Realm.objects.free('offlinePlayer', this.offlinePlayer);
         Realm.objects.free('offlineMap', this.offlineMap);
+
     }
 
 
@@ -138,6 +144,7 @@ export class OfflineGameState extends RealmState {
 
         this.score += (this.lastPlayerXPos - this.getLeadingPlayerPos().x) * 0.5;
         this.lastPlayerXPos = this.getLeadingPlayerPos().x;
+
         Realm.setScore(Math.floor(this.score));
     }
 
@@ -149,6 +156,15 @@ export class OfflineGameState extends RealmState {
 
     public getLeadingPlayerPos(): BABYLON.Vector3 {
         return this.getLeadingPlayer().position;
+    }
+
+    public explodeAt(position: BABYLON.Vector3) {
+        const expl: Explosion = (<Explosion> Realm.objects.grab('explosion'));
+        expl.position = position.clone();
+
+        window.setTimeout(() => {
+            Realm.objects.free('explosion', expl);
+        }, 1500)
     }
 
 }
