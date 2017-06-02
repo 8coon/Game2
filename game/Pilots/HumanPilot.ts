@@ -62,11 +62,11 @@ export class HumanPilot extends Pilot {
 
 
     protected onMouseDown(): void {
-        /*if (!this.canControl || !Realm.pointerLocked) {
+        if (!this.canControl || !Realm.pointerLocked) {
             return;
         }
 
-        this.ship.shoot();*/
+        this.ship.shoot();
     }
 
 

@@ -43,6 +43,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     private canvas2d: BABYLON.WorldSpaceCanvas2D;
     private healthBorder: BABYLON.Rectangle2D;
     private healthBar: BABYLON.Rectangle2D;
+    public exploded: boolean = false;
 
 
     constructor(name: string, scene: BABYLON.Scene, hasLight: boolean = true) {
@@ -109,6 +110,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public shoot(): void {
+        Realm.scene.laserSound.play();
         let bulletName: string = 'greenBullet';
 
         if (this.isAI) {
@@ -166,8 +168,13 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public onRender(): void {
-        if (this.health < 0) {
+        if (!this.exploded && this.health < 0) {
+            this.exploded = true;
             this.setEnabled(false);
+
+            (<OfflineGameState> Realm.state).kills++;
+            (<OfflineGameState> Realm.state).explodeAt(this.position);
+
             return;
         }
 
@@ -228,6 +235,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public onGrab(): void {
         this.setEnabled(true);
         this.health = this.maxHealth;
+        this.exploded = false;
 
         (<OfflineGameState> Realm.state).ships.push(this);
 

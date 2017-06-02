@@ -9,6 +9,7 @@
     z-index: 900;
     position: fixed;
     background-color: transparent;
+    font-size: 80%;
 }
 
 
@@ -115,6 +116,14 @@
 
 #hud-stats-delta {
     display: none;
+}
+
+#hud-score-value {
+    text-align: center;
+}
+
+#hud-current-place {
+    text-align: center;
 }
 
 

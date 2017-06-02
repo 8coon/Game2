@@ -26,6 +26,7 @@ export class OfflineGameState extends RealmState {
     private score: number = 0;
     private lastPlayerXPos: number = 0;
     private comboCount: number = 0;
+    public kills: number = 0;
 
 
     constructor(name: string, scene: BABYLON.Scene) {
@@ -45,7 +46,7 @@ export class OfflineGameState extends RealmState {
             return new OfflineMap('offlineMap', scene, this, this.random);
         });
 
-        Realm.objects.addObject('explosion', 10, (): IObject => {
+        Realm.objects.addObject('explosion', 100, (): IObject => {
             return new Explosion('explosion', scene);
         });
 
@@ -159,7 +160,7 @@ export class OfflineGameState extends RealmState {
 
     public onRender() {
         Realm.drawSpeedometer(this.getLeadingPlayer().speed / this.getLeadingPlayer().maxSpeed);
-        Realm.setPlace(1, 1);
+        Realm.setPlace(this.kills, 1);
 
         this.score += (this.lastPlayerXPos - this.getLeadingPlayerPos().x) * 0.5;
         this.lastPlayerXPos = this.getLeadingPlayerPos().x;
@@ -178,12 +179,16 @@ export class OfflineGameState extends RealmState {
     }
 
     public explodeAt(position: BABYLON.Vector3) {
+        if (!Realm.objects.hasFree('explosion')) {
+            return;
+        }
+
         const expl: Explosion = (<Explosion> Realm.objects.grab('explosion'));
         expl.position = position.clone();
 
-        window.setTimeout(() => {
-            Realm.objects.free('explosion', expl);
-        }, 1500);
+        Realm.camera.explosionAnimate((1 / BABYLON.Vector3.Distance(position,
+                Realm.camera.camera.position)) * 30, 1000);
+        Realm.scene.explosionSound.play();
     }
 
 }

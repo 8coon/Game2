@@ -14,6 +14,10 @@ export class RealmScene extends BABYLON.Scene {
     public engineSound: BABYLON.Sound;
     public menuMusic: BABYLON.Sound;
     public gameMusic: BABYLON.Sound;
+    public laserSound: BABYLON.Sound;
+    public explosionSound: BABYLON.Sound;
+    public hoverSound: BABYLON.Sound;
+    public clickSound: BABYLON.Sound;
 
 
     constructor(engine: BABYLON.Engine) {
@@ -47,6 +51,34 @@ export class RealmScene extends BABYLON.Scene {
             this.gameMusic = new BABYLON.Sound('game', task.data, this, null,
                 { loop: true, autoplay: false });
             this.gameMusic.setVolume(0.17);
+        };
+
+        task = this.loader.addBinaryFileTask('laser task', '/static/sounds/laser.ogg');
+        task.onSuccess = (task) => {
+            this.laserSound = new BABYLON.Sound('shoot', task.data, this, null,
+                { loop: false, autoplay: false });
+            this.laserSound.setVolume(0.6);
+        };
+
+        task = this.loader.addBinaryFileTask('explosion task', '/static/sounds/explosion.ogg');
+        task.onSuccess = (task) => {
+            this.explosionSound = new BABYLON.Sound('explosion', task.data, this, null,
+                { loop: false, autoplay: false });
+            this.explosionSound.setVolume(0.8);
+        };
+
+        task = this.loader.addBinaryFileTask('hover task', '/static/sounds/click.ogg');
+        task.onSuccess = (task) => {
+            this.hoverSound = new BABYLON.Sound('hover', task.data, this, null,
+                { loop: false, autoplay: false });
+            this.hoverSound.setVolume(2.0);
+        };
+
+        task = this.loader.addBinaryFileTask('click task', '/static/sounds/click2.ogg');
+        task.onSuccess = (task) => {
+            this.clickSound = new BABYLON.Sound('click', task.data, this, null,
+                { loop: false, autoplay: false });
+            this.clickSound.setVolume(2.0);
         };
 
     }

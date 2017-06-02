@@ -105,6 +105,8 @@ export class RealmClass {
             document.addEventListener('webkitpointerlockchange', () => { this.pointerLockChanged(); });
         }
 
+        (<HTMLElement> document.querySelector('.base-container')).style.visibility = 'hidden';
+
         document.addEventListener('keyup', (e) => {
             if (this.state.name === 'offlineGame' && e.keyCode === 32) {
                 this.togglePauseMenu(true);
@@ -195,6 +197,7 @@ export class RealmClass {
                 this.notifyLoaded();
                 this.initFX();
 
+                (<HTMLElement> document.querySelector('.base-container')).style.visibility = 'visible';
                 let oldMillis: number = RealmClass.now();
 
                 this.engine.runRenderLoop(() => {

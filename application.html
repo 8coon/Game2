@@ -42,6 +42,8 @@
         </app-routes>
     </app-info>
 
+    <div id="background"></div>
+
 
     <div class="game-content">
         <canvas id="game-canvas" tabindex="90000"></canvas>
@@ -71,11 +73,13 @@
                 </div>
 
                 <div id="hud-stats">
-                    <div id="hud-stats-text" class="hud-text">Место</div>
+                    <div id="hud-stats-text" class="hud-text">Сбито</div>
                     <div id="hud-stats-value" class="hud-value">
-                        <span id="hud-current-place">1</span>
-                        <span id="hud-place-delimiter">/</span>
-                        <span id="hud-total-places">2</span>
+                        <span id="hud-current-place">0</span>
+                        <div style="display: none">
+                            <span id="hud-place-delimiter">/</span>
+                            <span id="hud-total-places">2</span>
+                        </div>
                     </div>
                     <div id="hud-stats-delta">+ 00:07</div>
                 </div>
@@ -89,9 +93,6 @@
                 <div id="pause-menu__exit" class="button buttonWhite">Выйти</div>
             </div>
         </div>
-    </div>
-
-
     </div>
 
 
