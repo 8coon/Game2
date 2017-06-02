@@ -51,6 +51,11 @@ export class RealmClass {
     private comboValue: HTMLElement = <HTMLElement> this.combo.querySelector('#hud-combo-value');
     private comboText: HTMLElement = <HTMLElement> this.combo.querySelector('#hud-combo-text');
 
+    private pauseMenu : HTMLElement = <HTMLElement> document.querySelector('#pause-menu');
+    private continueBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__continue');
+    private exitBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__exit');
+
+    private running: boolean = true;
 
     public static now(): number {
         return window.performance.now();
@@ -88,6 +93,20 @@ export class RealmClass {
         } else if ('onwebkitpointerlockchange' in document) {
             document.addEventListener('webkitpointerlockchange', () => { this.pointerLockChanged(); });
         }
+
+        document.addEventListener('keyup', (e) => {
+            if (e.keyCode == 32) {
+                this.pauseMenu.style.display = 'flex';
+                this.pauseMenu.style.backgroundColor = 'rgba(0,0,0,0.2)';
+                this.running = false;
+                this.dropPointerLock();
+            }
+        });
+
+        this.continueBtn.addEventListener('click', () => {
+            this.pauseMenu.style.display = 'none';
+            this.running = true;
+        });
 
         this.meshesLoader.taskAdder = (self, name, root, file) => {
             return this.scene.loader.addMeshTask(name, '', root, file);
@@ -151,7 +170,11 @@ export class RealmClass {
 
                     this.fps = Math.floor(60 * this.animModifier);
                     this.animModifier = 1.2;
-                    this.render();
+
+                    if (this.running) {
+                        this.render();
+                    }
+
 
                     oldMillis = newMillis;
                     document.title = `, FPS: ${this.fps}`;
@@ -400,11 +423,11 @@ export class RealmClass {
     }
 
     public dropPointerLock(): void {
-        (<any> this.canvas).exitPointerLock = (<any> this.canvas).exitPointerLock ||
-                (<any> this.canvas).mozExitPointerLock ||
-                (<any> this.canvas).webkitExitPointerLock;
+       document.exitPointerLock = document.exitPointerLock ||
+           (<any> document).mozExitPointerLock ||
+           (<any> document).webkitExitPointerLock;
 
-        (<any> this.canvas).exitPointerLock();
+        document.exitPointerLock();
     }
 
     public pointerLockChanged(): void {
