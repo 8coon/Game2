@@ -12,6 +12,7 @@ import {OfflineGameState} from "../States/OfflineGameState";
 import {JSWorksLib} from "jsworks/dist/dts/jsworks";
 import {SimpleVirtualDOMElement} from "jsworks/dist/dts/VirtualDOM/SimpleVirtualDOM/SimpleVirtualDOMElement";
 import {MenuState} from "../States/MenuState";
+import {GUIFlashingAnimation} from "../Utils/GUIFlashingAnimation";
 
 
 declare const JSWorks: JSWorksLib;
@@ -38,6 +39,14 @@ export class RealmClass {
 
     private yMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationY(0.5 * Math.PI);
     private zMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationZ(0.5 * Math.PI);
+
+    private HUD: HTMLElement = <HTMLElement> document.querySelector('#game-hud');
+    private hudSpeedometer: HTMLCanvasElement = <HTMLCanvasElement> document.querySelector('#hud-speedometer');
+    private speedCtx: CanvasRenderingContext2D = this.hudSpeedometer.getContext('2d');
+    private timer: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-timer-value');
+    private score: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-score-value');
+    private currentPlace: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-current-place');
+    private totalPlaces: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-total-places');
 
 
     public static now(): number {
@@ -115,6 +124,7 @@ export class RealmClass {
         this.sky = new RealmSky('sky', this.scene);
         this.scene.load();
         this.toggleLoading(true);
+        this.toggleHUD(false);
 
         this.meshesLoader.load().then(() => {
             this.loadStates();
@@ -145,6 +155,32 @@ export class RealmClass {
     }
 
 
+    public drawSpeedometer(speed: number): void {
+        this.speedCtx.clearRect(0, 0, this.hudSpeedometer.width, this.hudSpeedometer.height);
+
+        const minStripeLen: number = 10;
+        const maxStripeLen: number = 110;
+        const stripeCount: number = 8;
+
+        const stripeDelta = maxStripeLen - minStripeLen;
+        speed *= stripeCount;
+
+        for (let i = 0; i < stripeCount; i++) {
+            const curStripeLen = minStripeLen + stripeDelta *
+                (1 - Math.sin((i / stripeCount + 1) * Math.PI * 0.5));
+
+            this.speedCtx.fillStyle = (i < speed) ? 'rgb(211, 42, 156)' : 'rgb(200, 200, 200)';
+            this.speedCtx.strokeStyle = 'rgb(255, 255, 255)';
+            this.speedCtx.lineWidth = 2;
+            this.speedCtx.strokeRect(this.hudSpeedometer.width - curStripeLen - 11,
+                (stripeCount - i) * 14 - 1, curStripeLen + 2, 5 + 2);
+            this.speedCtx.fillRect(this.hudSpeedometer.width - curStripeLen - 10,
+                (stripeCount - i) * 14, curStripeLen, 5);
+            this.speedCtx.fillStyle = 'rgba(0, 0, 0, 0)';
+        }
+    }
+
+
     public toggleLoading(value: boolean, text: string = 'Загрузка... пожалуйста, подождите.'): void {
         const loader: SimpleVirtualDOMElement = JSWorks.applicationContext.currentPage['view'].DOMRoot
                 .querySelector('.loader-container');
@@ -153,6 +189,35 @@ export class RealmClass {
         content.classList.toggle('blurred', value);
         loader.toggleClass('hidden', !value);
         loader.querySelector('.loader-text').innerHTML = text;
+    }
+
+
+    public toggleHUD(value: boolean): void {
+        this.HUD.classList.toggle('hidden', !value);
+    }
+
+    public flashHUD(): void {
+        GUIFlashingAnimation.Visibility(this.HUD, 3, 2000);
+    }
+
+    public toggleCountdown(value: boolean, text: string): void {
+        const countdown = this.HUD.querySelector('#hud-countdown');
+        countdown.classList.toggle('hidden', !value);
+        countdown.innerHTML = text;
+    }
+
+    public toggleTimer(value: boolean, text: string): void {
+        this.timer.classList.toggle('hidden', !value);
+        this.timer.innerHTML = text;
+    }
+
+    public setScore(value: number): void {
+        this.score.innerHTML = String(value);
+    }
+
+    public setPlace(place: number, total: number): void {
+        this.currentPlace.innerHTML = String(place);
+        this.totalPlaces.innerHTML = String(place);
     }
 
 
