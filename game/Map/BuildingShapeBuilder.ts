@@ -57,8 +57,12 @@ export class RectangularBuildingShapeBuilder extends BuildingShapeBuilder {
             this.zParam = b;
         }
 
-        const builders: any[] = [BlankBuilder, BlankWallBuilder, VerticalWindowBuilder,
+        let builders: any[] = [BlankBuilder, BlankWallBuilder, VerticalWindowBuilder,
                 HorizontalWindowBuilder];
+
+        if (Realm['_generateBuildingForMenu']) {
+            builders = [BlankBuilder, BlankWallBuilder];
+        }
 
         const patterns: WallBuilder[][] = [];
         const xTiles: number = Math.floor(this.xParam * 2 / this.floorHeight);

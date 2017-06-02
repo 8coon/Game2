@@ -47,6 +47,20 @@ export class ObjectFactory {
 
     public removeObject(name: string): void {
         this.freeAll(name);
+        const objects: Allocated = this.objects.get(name);
+
+        if (!objects) {
+            return;
+        }
+
+        objects.objects.forEach((object: IObject) => {
+            object.onDelete();
+
+            if (object['dispose']) {
+                object['dispose']();
+                console.log('disposing', object);
+            }
+        });
 
         this.objects.delete(name);
         this.objectFactories.delete(name);
@@ -65,7 +79,18 @@ export class ObjectFactory {
     }
 
 
-    public load(): Promise<any> {
+    private showLoadingText(): Promise<any> {
+        return new Promise<any>((resolve) => {
+            Realm.toggleLoading(true, 'Генерация структур... Это может занять некоторое время.');
+
+            window.setTimeout(() => {
+                resolve();
+            }, 200);
+        });
+    }
+
+
+    public load(): Promise<any> { return this.showLoadingText().then(() => {
         const promises: Promise<any>[] = [];
 
         this.objectFactories.forEach((objectProto: IObjectProto, name: string) => {
@@ -92,8 +117,9 @@ export class ObjectFactory {
 
         return Promise.all(promises).then(() => {
             Realm.setRenderGroupIDs();
+            //Realm.toggleLoading(false);
         });
-    }
+    }); }
 
 
     public notifyLoaded(): void {

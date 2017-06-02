@@ -18,7 +18,7 @@ const patch = () => {
 };
 
 
-if (!fs.existsSync('./static/babylon.2.5.canvas2d.js')) {
+/*if (!fs.existsSync('./static/babylon.2.5.canvas2d.js')) {
     download('https://raw.githubusercontent.com/BabylonJS/Babylon.js/master/dist/babylon.2.5.canvas2d.js',
                 { directory: './static/', filename: 'babylon.2.5.canvas2d.js' }, () => {
         download('https://raw.githubusercontent.com/BabylonJS/Babylon.js/master/dist/babylon.2.5.canvas2d.d.ts',
@@ -28,5 +28,5 @@ if (!fs.existsSync('./static/babylon.2.5.canvas2d.js')) {
         });
 } else {
     patch();
-}
+}*/
 

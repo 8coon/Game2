@@ -94,6 +94,7 @@ export class ExplosionAnimationAction {
 export class Camera extends BABYLON.Mesh {
 
     public camera: BABYLON.TargetCamera;
+    public limited: boolean = false;
 
     private followsMesh: StarShip;
     public followLag: number = 16;
@@ -157,7 +158,7 @@ export class Camera extends BABYLON.Mesh {
 
 
             case CameraMode.FOLLOWING: {
-                this.onFollow(this.followsMesh.position, this.followsMesh.direction);
+                this.onFollow(this.followsMesh.position, this.followsMesh.cameraDirection);
             } break;
 
         }
@@ -174,8 +175,11 @@ export class Camera extends BABYLON.Mesh {
         let offset: BABYLON.Vector3 = direction.clone().scale(1.1 * Realm.animModifier);
         offset.y -= 1.8; // 0.8
 
-        this.camera.position = Realm.calculateVectorLag(this.camera.position,
-            position.subtract(offset), followLag);
+        if (this.limited && BABYLON.Vector3.DistanceSquared(this.camera.position, position) > 100
+                    || !this.limited) {
+            this.camera.position = Realm.calculateVectorLag(this.camera.position,
+                    position.subtract(offset), followLag);
+        }
 
         this.camera.setTarget(Realm.calculateVectorLag(this.camera.getTarget(),
             position.add(

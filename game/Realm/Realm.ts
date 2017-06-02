@@ -9,8 +9,14 @@ import {LoadingScreen} from "../Loader/LoadingScreen";
 import {Loader} from "../Loader/Loader";
 import {StarShip} from "../Models/StarShip";
 import {OfflineGameState} from "../States/OfflineGameState";
+import {JSWorksLib} from "jsworks/dist/dts/jsworks";
+import {SimpleVirtualDOMElement} from "jsworks/dist/dts/VirtualDOM/SimpleVirtualDOM/SimpleVirtualDOMElement";
+import {MenuState} from "../States/MenuState";
+import {GUIFlashingAnimation} from "../Utils/GUIFlashingAnimation";
 
-interface IResolution { width?: number, height?: number, }
+
+declare const JSWorks: JSWorksLib;
+
 
 export class RealmClass {
 
@@ -33,6 +39,27 @@ export class RealmClass {
 
     private yMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationY(0.5 * Math.PI);
     private zMatrix: BABYLON.Matrix = BABYLON.Matrix.RotationZ(0.5 * Math.PI);
+
+    private HUD: HTMLElement = <HTMLElement> document.querySelector('#game-hud');
+    private hudSpeedometer: HTMLCanvasElement = <HTMLCanvasElement> document.querySelector('#hud-speedometer');
+    private speedCtx: CanvasRenderingContext2D = this.hudSpeedometer.getContext('2d');
+    private timer: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-timer-value');
+    private score: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-score-value');
+    private currentPlace: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-current-place');
+    private totalPlaces: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-total-places');
+    private combo: HTMLElement = <HTMLElement> this.HUD.querySelector('#hud-combo');
+    private comboValue: HTMLElement = <HTMLElement> this.combo.querySelector('#hud-combo-value');
+    private comboText: HTMLElement = <HTMLElement> this.combo.querySelector('#hud-combo-text');
+
+    private pauseMenu : HTMLElement = <HTMLElement> document.querySelector('#pause-menu');
+    private continueBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__continue');
+    private exitBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__exit');
+
+    private gameOver: HTMLElement = <HTMLElement> document.querySelector('#gameover');
+    private scoreResult: HTMLElement = <HTMLElement> this.gameOver.querySelector('#gameover__score');
+
+    private running: boolean = true;
+    public menuPlaying: boolean = true;
 
 
     public static now(): number {
@@ -63,6 +90,15 @@ export class RealmClass {
                 this.grabPointerLock();
             }
         });*/
+        window.setInterval(() => {
+            if (!this.state) {
+                return;
+            }
+
+            if (!this.scene.menuMusic['_shouldNotPlay'] && !this.scene.menuMusic.isPlaying) {
+                this.scene.menuMusic.play();
+            }
+        }, 1000);
 
         if ('onpointerlockchange' in document) {
             document.addEventListener('pointerlockchange', () => { this.pointerLockChanged(); });
@@ -71,6 +107,35 @@ export class RealmClass {
         } else if ('onwebkitpointerlockchange' in document) {
             document.addEventListener('webkitpointerlockchange', () => { this.pointerLockChanged(); });
         }
+
+        (<HTMLElement> document.querySelector('.base-container')).style.visibility = 'hidden';
+
+        document.addEventListener('keyup', (e) => {
+            if (this.state.name === 'offlineGame' && e.keyCode === 32) {
+                this.togglePauseMenu(true);
+            }
+        });
+
+        this.continueBtn.addEventListener('click', () => {
+            this.togglePauseMenu(false);
+        });
+
+        this.exitBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.dropPointerLock();
+            document.location.href = '/';
+
+            /*JSWorks.applicationContext.router.navigate(
+                JSWorks.applicationContext.routeHolder.getRoute('MenuRoute'),
+                {}
+            );
+
+            this.changeState('menu');
+            this.togglePauseMenu(false);*/
+            //this.dropPointerLock();
+        });
+
+
 
         this.meshesLoader.taskAdder = (self, name, root, file) => {
             return this.scene.loader.addMeshTask(name, '', root, file);
@@ -84,10 +149,28 @@ export class RealmClass {
     }
 
 
+    public togglePauseMenu(value: boolean): void {
+        if (value) {
+            this.pauseMenu.style.display = 'flex';
+            this.pauseMenu.style.backgroundColor = 'rgba(0,0,0,0.2)';
+            this.running = false;
+            this.dropPointerLock();
+        } else {
+            this.pauseMenu.style.display = 'none';
+            this.running = true;
+        }
+    }
+
+
     public setPointerLock(): void {
         if (!this.pointerLocked) {
             this.grabPointerLock();
         }
+    }
+
+
+    public getLeadingPlayer(): StarShip {
+        return (<OfflineGameState> this.state).getLeadingPlayer();
     }
 
 
@@ -109,6 +192,8 @@ export class RealmClass {
         this.meshesLoader.queue('spaceship', '/static/models/', 'spaceship.obj');
         this.sky = new RealmSky('sky', this.scene);
         this.scene.load();
+        this.toggleLoading(true);
+        this.toggleHUD(false);
 
         this.meshesLoader.load().then(() => {
             this.loadStates();
@@ -117,6 +202,7 @@ export class RealmClass {
                 this.notifyLoaded();
                 this.initFX();
 
+                (<HTMLElement> document.querySelector('.base-container')).style.visibility = 'visible';
                 let oldMillis: number = RealmClass.now();
 
                 this.engine.runRenderLoop(() => {
@@ -127,15 +213,119 @@ export class RealmClass {
 
                     this.fps = Math.floor(60 * this.animModifier);
                     this.animModifier = 1.2;
-                    this.render();
+
+                    if (this.running) {
+                        this.render();
+                    }
+
 
                     oldMillis = newMillis;
                     document.title = `, FPS: ${this.fps}`;
                 });
 
-                this.changeState('offlineGame');
+                this.changeState('menu');
             });
         });
+    }
+
+
+    public drawSpeedometer(speed: number): void {
+        this.speedCtx.clearRect(0, 0, this.hudSpeedometer.width, this.hudSpeedometer.height);
+
+        const minStripeLen: number = 10;
+        const maxStripeLen: number = 110;
+        const stripeCount: number = 8;
+
+        const stripeDelta = maxStripeLen - minStripeLen;
+        speed *= stripeCount;
+
+        for (let i = 0; i < stripeCount; i++) {
+            const curStripeLen = minStripeLen + stripeDelta *
+                (1 - Math.sin((i / stripeCount + 1) * Math.PI * 0.5));
+
+            this.speedCtx.fillStyle = (i < speed) ? 'rgb(211, 42, 156)' : 'rgb(200, 200, 200)';
+            this.speedCtx.strokeStyle = 'rgb(255, 255, 255)';
+            this.speedCtx.lineWidth = 2;
+            this.speedCtx.strokeRect(this.hudSpeedometer.width - curStripeLen - 11,
+                (stripeCount - i) * 14 - 1, curStripeLen + 2, 5 + 2);
+            this.speedCtx.fillRect(this.hudSpeedometer.width - curStripeLen - 10,
+                (stripeCount - i) * 14, curStripeLen, 5);
+            this.speedCtx.fillStyle = 'rgba(0, 0, 0, 0)';
+        }
+    }
+
+
+    public toggleLoading(value: boolean, text: string = 'Загрузка... пожалуйста, подождите.'): void {
+        const loader: SimpleVirtualDOMElement = JSWorks.applicationContext.currentPage['view'].DOMRoot
+                .querySelector('.loader-container');
+        const content: HTMLElement = <HTMLElement> document.querySelector('.game-content');
+
+        content.classList.toggle('blurred', value);
+        loader.toggleClass('hidden', !value);
+        loader.querySelector('.loader-text').innerHTML = text;
+    }
+
+
+    public toogleGameOver(value: boolean): void {
+        this.gameOver.style.display = (value) ? 'flex' : 'none';
+    }
+
+
+    public toggleHUD(value: boolean): void {
+        this.HUD.classList.toggle('hidden', !value);
+    }
+
+    public flashHUD(): Promise<any> {
+        return GUIFlashingAnimation.Visibility(this.HUD, 3, 1000);
+    }
+
+    public flashCountdown(): Promise<any> {
+        return GUIFlashingAnimation.Visibility(this.HUD.querySelector('#hud-countdown'), 3, 700);
+    }
+
+    public toggleCountdown(value: boolean, text: string): void {
+        const countdown = this.HUD.querySelector('#hud-countdown');
+        countdown.classList.toggle('hidden', !value);
+        countdown.innerHTML = text;
+    }
+
+    public toggleTimer(value: boolean, text: string): void {
+        this.timer.classList.toggle('hidden', !value);
+        this.timer.innerHTML = text;
+    }
+
+    public setScore(value: number): void {
+        this.score.innerHTML = String(value);
+    }
+
+    public flashScore(): void {
+        GUIFlashingAnimation.Visibility(this.score, 3, 500);
+    }
+
+    public setPlace(place: number, total: number): void {
+        this.currentPlace.innerHTML = String(place);
+        this.totalPlaces.innerHTML = String(place);
+    }
+
+    public toggleCombo(current: number): void {
+        if (current === 0) {
+            this.combo.classList.toggle('hidden', true);
+            return;
+        }
+
+        this.combo.classList.toggle('hidden', false);
+        let width: number = current * 10;
+
+        if (width > 100) {
+            width = 100;
+        }
+
+        this.comboValue.style.width = `${width}%`;
+        this.comboText.innerHTML = `Комбо х${current}`;
+    }
+
+    public flashCombo(): Promise<any> {
+        return GUIFlashingAnimation.Visibility(this.combo, 3, 500);
     }
 
 
@@ -222,6 +412,7 @@ export class RealmClass {
         // this.addState(new TestState('second', this.scene));
         // this.addState(new TestState('third', this.scene));
         this.addState(new OfflineGameState('offlineGame', this.scene));
+        this.addState(new MenuState('menu', this.scene));
     }
 
 
@@ -280,11 +471,11 @@ export class RealmClass {
     }
 
     public dropPointerLock(): void {
-        (<any> this.canvas).exitPointerLock = (<any> this.canvas).exitPointerLock ||
-                (<any> this.canvas).mozExitPointerLock ||
-                (<any> this.canvas).webkitExitPointerLock;
+       document.exitPointerLock = document.exitPointerLock ||
+           (<any> document).mozExitPointerLock ||
+           (<any> document).webkitExitPointerLock;
 
-        (<any> this.canvas).exitPointerLock();
+        document.exitPointerLock();
     }
 
     public pointerLockChanged(): void {
@@ -334,23 +525,6 @@ export class RealmClass {
         return new Promise<any>((resolve) => {
             window.setTimeout(() => { resolve() }, millis);
         });
-    }
-
-    private initCanvas(res?: IResolution) {
-        let canvasSize = { height: '100%', width: '100%' };
-
-        if (res) {
-            canvasSize.height = `${res.height.toString()}px` || canvasSize.height;
-            canvasSize.width = `${res.width.toString()}px` || canvasSize.width;
-        }
-
-        this.canvas.style.height = canvasSize.height;
-        this.canvas.style.width = canvasSize.width;
-
-        this.engine = new BABYLON.Engine(this.canvas, true);
-
-        this.canvas.style.height = '100%';
-        this.canvas.style.width = '100%';
     }
 
 }

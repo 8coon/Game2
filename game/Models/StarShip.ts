@@ -16,6 +16,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public ship: BABYLON.Mesh;
     public light: BABYLON.Light;
     public pilot: Pilot;
+    public canMove: boolean = true;
 
     public speed: number = 0;
     public maxSpeed: number = 0.07 * 12;
@@ -27,6 +28,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public maxHealth: number = 100;
 
     public direction: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
+    public cameraDirection: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private _aim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private localRealAim: AnimatedValue<BABYLON.Vector3> = AnimatedValue.resolve(BABYLON.Axis.X.scale(-1));
     private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
@@ -41,6 +43,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     private canvas2d: BABYLON.WorldSpaceCanvas2D;
     private healthBorder: BABYLON.Rectangle2D;
     private healthBar: BABYLON.Rectangle2D;
+    public exploded: boolean = false;
 
 
     constructor(name: string, scene: BABYLON.Scene, hasLight: boolean = true) {
@@ -62,7 +65,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
             this.light.parent = this;
             this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
-            this.light.intensity = 0.9;
+            this.light.intensity = 1.9;
         }
 
 
@@ -107,6 +110,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public shoot(): void {
+        Realm.scene.laserSound.play();
         let bulletName: string = 'greenBullet';
 
         if (this.isAI) {
@@ -164,13 +168,22 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
 
     public onRender(): void {
-        if (this.health < 0) {
+        if (!this.exploded && this.health < 0) {
+            this.exploded = true;
             this.setEnabled(false);
+
+            (<OfflineGameState> Realm.state).kills++;
+            (<OfflineGameState> Realm.state).explodeAt(this.position);
+
             return;
         }
 
         if (this.pilot) {
             this.pilot.think();
+        }
+
+        if (!this.isAI) {
+            Realm.scene.engineSound.setPlaybackRate(this.speed * 2 + 1.0);
         }
 
         this.localRealAim.onRender();
@@ -192,6 +205,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
         this.direction = Realm.calculateVectorLag(this.direction, this.lastLocalRealAim.clone().normalize(),
                 100);
+        this.cameraDirection = this.direction.clone();
 
         this.rotation = Realm.rotationFromDirection(this.direction);
 
@@ -207,7 +221,9 @@ export class StarShip extends BABYLON.Mesh implements IObject {
             }
         }
 
-        this.direction.scaleInPlace(this.speed * Realm.animModifier);
+        const speed: number = this.canMove ? this.speed : 0;
+        this.direction.scaleInPlace(speed * Realm.animModifier);
+        this.cameraDirection.scaleInPlace(this.speed * Realm.animModifier);
         this.position.addInPlace(this.direction);
 
         if (this.aimResolve && this.position.equalsWithEpsilon(this.aim, 0.5)) {
@@ -219,13 +235,32 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public onGrab(): void {
         this.setEnabled(true);
         this.health = this.maxHealth;
+        this.exploded = false;
 
         (<OfflineGameState> Realm.state).ships.push(this);
+
+        if (!this.isAI) {
+            Realm.scene.engineSound.play();
+        }
     }
 
 
     public onFree(): void {
         this.setEnabled(false);
+
+        if (!this.isAI) {
+            Realm.scene.engineSound.stop();
+        }
+
+        this.direction = BABYLON.Axis.X.scale(-1);
+        this.cameraDirection = BABYLON.Axis.X.scale(-1);
+        this._aim = BABYLON.Axis.X.scale(-1);
+        this.localRealAim = AnimatedValue.resolve(BABYLON.Axis.X.scale(-1));
+        this.lastLocalRealAim = BABYLON.Axis.X.scale(-1);
+        this.zRotation = 0;
+        this.zNextRotation = 0;
+        this.position = BABYLON.Vector3.Zero();
+        this.rotation = BABYLON.Vector3.Zero();
 
         if (!Realm.state || !(<OfflineGameState> Realm.state).ships) {
             return;
