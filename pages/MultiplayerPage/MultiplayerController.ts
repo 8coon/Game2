@@ -8,6 +8,9 @@ declare const JSWorks: JSWorksLib;
 @JSWorks.Controller
 export class MultiplayerController extends AbstractController {
 
+    public isGame: boolean = true;
+
+
     public onCreate(): void {
 
     }

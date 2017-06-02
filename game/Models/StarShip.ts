@@ -16,6 +16,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public ship: BABYLON.Mesh;
     public light: BABYLON.Light;
     public pilot: Pilot;
+    public canMove: boolean = true;
 
     public speed: number = 0;
     public maxSpeed: number = 0.07 * 12;
@@ -27,6 +28,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
     public maxHealth: number = 100;
 
     public direction: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
+    public cameraDirection: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private _aim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
     private localRealAim: AnimatedValue<BABYLON.Vector3> = AnimatedValue.resolve(BABYLON.Axis.X.scale(-1));
     private lastLocalRealAim: BABYLON.Vector3 = BABYLON.Axis.X.scale(-1);
@@ -192,6 +194,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
         this.direction = Realm.calculateVectorLag(this.direction, this.lastLocalRealAim.clone().normalize(),
                 100);
+        this.cameraDirection = this.direction.clone();
 
         this.rotation = Realm.rotationFromDirection(this.direction);
 
@@ -207,7 +210,9 @@ export class StarShip extends BABYLON.Mesh implements IObject {
             }
         }
 
-        this.direction.scaleInPlace(this.speed * Realm.animModifier);
+        const speed: number = this.canMove ? this.speed : 0;
+        this.direction.scaleInPlace(speed * Realm.animModifier);
+        this.cameraDirection.scaleInPlace(this.speed * Realm.animModifier);
         this.position.addInPlace(this.direction);
 
         if (this.aimResolve && this.position.equalsWithEpsilon(this.aim, 0.5)) {

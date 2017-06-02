@@ -113,6 +113,10 @@
     margin-bottom: 10px;
 }
 
+#hud-stats-delta {
+    display: none;
+}
+
 
 
 

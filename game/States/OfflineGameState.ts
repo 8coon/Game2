@@ -24,6 +24,7 @@ export class OfflineGameState extends RealmState {
 
     private score: number = 0;
     private lastPlayerXPos: number = 0;
+    private comboCount: number = 0;
 
 
     constructor(name: string, scene: BABYLON.Scene) {
@@ -48,6 +49,29 @@ export class OfflineGameState extends RealmState {
     }
 
 
+    public bonusCollected(): void {
+        this.comboCount++;
+        Realm.toggleCombo(this.comboCount);
+    }
+
+
+    public bonusMissed(): void {
+        const combo: number = this.comboCount;
+        this.comboCount = 0;
+
+        if (combo === 0) {
+            return;
+        }
+
+        Realm.flashCombo().then(() => {
+            this.score += this.score * (0.01 * combo);
+
+            Realm.toggleCombo(0);
+            Realm.flashScore();
+        });
+    }
+
+
     public onEnter() {
         this.ships = [];
         this.offlinePlayer = <StarShip> Realm.objects.grab('offlinePlayer');
@@ -58,13 +82,43 @@ export class OfflineGameState extends RealmState {
 
         Realm.objects.load().then(() => {
             Realm.toggleLoading(false);
-            Realm.flashHUD();
+            Realm.toggleCountdown(false, '');
+            Realm.toggleTimer(false, '');
+            Realm.toggleCombo(0);
+            Realm.camera.limited = true;
 
             this.offlineMap.startMap();
             this.offlineMap.mainTrafficLine.connectShip(this.offlinePlayer);
             (<HumanPilot> this.offlinePlayer.pilot).grabShip();
+            this.lastPlayerXPos = this.getLeadingPlayerPos().x;
 
-            this.lastPlayerXPos = Math.floor(this.getLeadingPlayerPos().x);
+            Realm.flashHUD().then(() => {
+                Promise.resolve().then(() => {
+                    return new Promise((resolve) => {
+                        Realm.toggleCountdown(true, '3');
+                        window.setTimeout(() => resolve(), 1000);
+                    });
+                }).then(() => {
+                    return new Promise((resolve) => {
+                        Realm.toggleCountdown(true, '2');
+                        window.setTimeout(() => resolve(), 1000);
+                    });
+                }).then(() => {
+                    return new Promise((resolve) => {
+                        Realm.toggleCountdown(true, '1');
+                        window.setTimeout(() => resolve(), 1000);
+                    });
+                }).then(() => {
+                    Realm.toggleCountdown(true, 'СТАРТ');
+                    this.getLeadingPlayer().canMove = true;
+                    (<HumanPilot> this.offlinePlayer.pilot).toggleControl(true);
+                    Realm.camera.limited = false;
+
+                    return Realm.flashCountdown();
+                }).then(() => {
+                    Realm.toggleCountdown(false, '');
+                })
+            });
         });
     }
 
@@ -82,9 +136,9 @@ export class OfflineGameState extends RealmState {
         Realm.drawSpeedometer(this.getLeadingPlayer().speed / this.getLeadingPlayer().maxSpeed);
         Realm.setPlace(1, 1);
 
-        this.score += Math.floor(this.lastPlayerXPos - this.getLeadingPlayerPos().x);
+        this.score += (this.lastPlayerXPos - this.getLeadingPlayerPos().x) * 0.5;
         this.lastPlayerXPos = this.getLeadingPlayerPos().x;
-        Realm.setScore(this.score);
+        Realm.setScore(Math.floor(this.score));
     }
 
 

@@ -114,7 +114,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject {
 
 
         const seedMapping: number[] = [];
-        const buildingsBufferSize: number = 60;
+        const buildingsBufferSize: number = 40;
 
         for (let i = 0; i < buildingsBufferSize; i++) {
             seedMapping.push(this.random.range(-1000000, 1000000));
