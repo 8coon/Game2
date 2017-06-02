@@ -9,8 +9,13 @@ import {LoadingScreen} from "../Loader/LoadingScreen";
 import {Loader} from "../Loader/Loader";
 import {StarShip} from "../Models/StarShip";
 import {OfflineGameState} from "../States/OfflineGameState";
+import {JSWorksLib} from "jsworks/dist/dts/jsworks";
+import {SimpleVirtualDOMElement} from "jsworks/dist/dts/VirtualDOM/SimpleVirtualDOM/SimpleVirtualDOMElement";
+import {MenuState} from "../States/MenuState";
 
-interface IResolution { width?: number, height?: number, }
+
+declare const JSWorks: JSWorksLib;
+
 
 export class RealmClass {
 
@@ -109,6 +114,7 @@ export class RealmClass {
         this.meshesLoader.queue('spaceship', '/static/models/', 'spaceship.obj');
         this.sky = new RealmSky('sky', this.scene);
         this.scene.load();
+        this.toggleLoading(true);
 
         this.meshesLoader.load().then(() => {
             this.loadStates();
@@ -133,9 +139,20 @@ export class RealmClass {
                     document.title = `, FPS: ${this.fps}`;
                 });
 
-                this.changeState('offlineGame');
+                this.changeState('menu');
             });
         });
+    }
+
+
+    public toggleLoading(value: boolean, text: string = 'Загрузка... пожалуйста, подождите.'): void {
+        const loader: SimpleVirtualDOMElement = JSWorks.applicationContext.currentPage['view'].DOMRoot
+                .querySelector('.loader-container');
+        const content: HTMLElement = <HTMLElement> document.querySelector('.game-content');
+
+        content.classList.toggle('blurred', value);
+        loader.toggleClass('hidden', !value);
+        loader.querySelector('.loader-text').innerHTML = text;
     }
 
 
@@ -222,6 +239,7 @@ export class RealmClass {
         // this.addState(new TestState('second', this.scene));
         // this.addState(new TestState('third', this.scene));
         this.addState(new OfflineGameState('offlineGame', this.scene));
+        this.addState(new MenuState('menu', this.scene));
     }
 
 
@@ -334,23 +352,6 @@ export class RealmClass {
         return new Promise<any>((resolve) => {
             window.setTimeout(() => { resolve() }, millis);
         });
-    }
-
-    private initCanvas(res?: IResolution) {
-        let canvasSize = { height: '100%', width: '100%' };
-
-        if (res) {
-            canvasSize.height = `${res.height.toString()}px` || canvasSize.height;
-            canvasSize.width = `${res.width.toString()}px` || canvasSize.width;
-        }
-
-        this.canvas.style.height = canvasSize.height;
-        this.canvas.style.width = canvasSize.width;
-
-        this.engine = new BABYLON.Engine(this.canvas, true);
-
-        this.canvas.style.height = '100%';
-        this.canvas.style.width = '100%';
     }
 
 }

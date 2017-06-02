@@ -35,14 +35,54 @@
             <app-route id="MenuRoute" page="MenuPage" default></app-route>
             <app-route id="LoginRoute" page="LoginPage" match="login"></app-route>
             <app-route id="SignUpRoute" page="SignUpPage" match="signup"></app-route>
-            <app-route id="SinglePlayerRoute" page="SinglePlayerPage" match="singlplayer"></app-route>
+            <app-route id="SinglePlayerRoute" page="SinglePlayerPage" match="singleplayer"></app-route>
             <app-route id="MultiplayerRoute" page="MultiplayerPage" match="multiplayer"></app-route>
             <app-route id="LogoutRoute" page="LoadingPage" match="logout"></app-route>
 
         </app-routes>
     </app-info>
 
-    <canvas id="game-canvas"></canvas>
+
+    <div class="game-content">
+        <canvas id="game-canvas" tabindex="90000"></canvas>
+
+
+        <div id="game-hud" class="hidden">
+            <canvas id="hud-speedometer"></canvas>
+
+            <div id="hud-top-bar">
+
+                <div id="hud-score">
+                    <div id="hud-score-text" class="hud-text">Счёт:</div>
+                    <div id="hud-score-value" class="hud-value">3507</div>
+                </div>
+
+                <div id="hud-timer">
+                    <div id="hud-combo">
+                        <div id="hud-combo-text" class="hud-text">Комбо x2</div>
+
+                        <div id="hud-combo-value-border">
+                            <div id="hud-combo-value"></div>
+                        </div>
+                    </div>
+
+                    <div id="hud-timer-value">02:58</div>
+                </div>
+
+                <div id="hud-stats">
+                    <div id="hud-stats-text" class="hud-text">Место</div>
+                    <div id="hud-stats-value" class="hud-value">
+                        <span id="hud-current-place">1</span>
+                        <span id="hud-place-delimiter">/</span>
+                        <span id="hud-total-places">2</span>
+                    </div>
+                    <div id="hud-stats-delta">+ 00:07</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
     <app-main></app-main>
 

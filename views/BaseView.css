@@ -194,3 +194,38 @@ form-field {
 .user-box view-eval {
     display: inline-block;
 }
+
+
+.blurred {
+    -moz-filter: blur(10px);
+    -o-filter: blur(10px);
+    -webkit-filter: blur(10px);
+    filter: blur(10px);
+}
+
+
+.loader-container {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100000;
+}
+
+
+.loader-container > * {
+    padding-top: 40%;
+}
+
+.loader-text {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.game-content {
+    background-color: black;
+}

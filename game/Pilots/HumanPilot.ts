@@ -83,9 +83,13 @@ export class HumanPilot extends Pilot {
             (<any> event).mozMovementY ||
             (<any> event).webkitMovementY || 0;
 
-        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 2.0, this.movementLag);
-        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 5.0, this.movementLag);
-        this.ship.setRoll(movX * 0.2);
+        const movSpeed = this.ship.speed / this.ship.maxSpeed;
+
+        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 2.0 * movSpeed,
+                this.movementLag);
+        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 4.0 * movSpeed,
+            this.movementLag);
+        this.ship.setRoll(movX * 0.2 * movSpeed);
     }
 
 

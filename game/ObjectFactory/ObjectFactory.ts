@@ -65,7 +65,18 @@ export class ObjectFactory {
     }
 
 
-    public load(): Promise<any> {
+    private showLoadingText(): Promise<any> {
+        return new Promise<any>((resolve) => {
+            Realm.toggleLoading(true, 'Генерация структур... Это может занять некоторое время.');
+
+            window.setTimeout(() => {
+                resolve();
+            }, 200);
+        });
+    }
+
+
+    public load(): Promise<any> { return this.showLoadingText().then(() => {
         const promises: Promise<any>[] = [];
 
         this.objectFactories.forEach((objectProto: IObjectProto, name: string) => {
@@ -92,8 +103,9 @@ export class ObjectFactory {
 
         return Promise.all(promises).then(() => {
             Realm.setRenderGroupIDs();
+            //Realm.toggleLoading(false);
         });
-    }
+    }); }
 
 
     public notifyLoaded(): void {

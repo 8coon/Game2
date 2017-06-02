@@ -35,6 +35,11 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
     constructor(random: Random, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh,
                 isSmall: boolean, args: object, isTop: boolean) {
         super(name, scene, parent);
+
+        if (random === undefined) {
+            return;
+        }
+
         this.random = random;
         this.isSmall = isSmall;
 
@@ -86,6 +91,18 @@ export class BuildingSectionScaffold extends BABYLON.Mesh {
     }
 
 
+    public clone(): BuildingSectionScaffold {
+        const section: BuildingSectionScaffold = new (<any> BuildingSectionScaffold)();
+
+        section.darksMesh = this.darksMesh.clone('lights');
+        section.lightsMesh = this.lightsMesh.clone('lights');
+        section.height = this.height;
+        section.floors = this.floors;
+
+        return section;
+    }
+
+
 
     private buildFloor(index: number): void {
         this.shape.build(index)
@@ -113,6 +130,11 @@ export class Building extends BABYLON.Mesh implements IObject {
 
     constructor(seed: number, name: string, scene: BABYLON.Scene, parent: BABYLON.Mesh) {
         super(name, scene, parent);
+
+        if (seed === undefined) {
+            return;
+        }
+
         this.random = new Random(seed);
         this.isSmall = this.random.boolean;
 
@@ -140,9 +162,11 @@ export class Building extends BABYLON.Mesh implements IObject {
     }
 
     public onGrab(): void {
+        this.setEnabled(true);
     }
 
     public onFree(): void {
+        this.setEnabled(false);
     }
 
     public onRender(): void {
@@ -157,6 +181,19 @@ export class Building extends BABYLON.Mesh implements IObject {
 
     public onDelete(): void {
         this.dispose(true);
+    }
+
+
+    public clone(): Building {
+        const building: Building = new (<any> Building)();
+
+        building.lowerScaffold = this.lowerScaffold.clone();
+        building.upperScaffold = this.lowerScaffold ? this.lowerScaffold.clone() : undefined;
+        building.height = this.height;
+        building.isSmall = this.isSmall;
+        building.args = this.args;
+
+        return building;
     }
 
 

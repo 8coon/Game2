@@ -24,7 +24,7 @@ export abstract class AbstractController {
             return;
         }
 
-        document.querySelector('app-main').addEventListener('click', () => {
+        document.querySelector('#game-hud').addEventListener('click', () => {
             Realm.setPointerLock();
         });
 

@@ -62,7 +62,7 @@ export class StarShip extends BABYLON.Mesh implements IObject {
 
             this.light.parent = this;
             this.light.diffuse = new BABYLON.Color3(69 / 255, 110 / 255, 203 / 255);
-            this.light.intensity = 0.9;
+            this.light.intensity = 1.9;
         }
 
 
