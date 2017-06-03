@@ -157,7 +157,7 @@ input:focus {
     bottom: 1px;
     position: absolute;
     border-top: 1px solid black;
-    background: #f20dff;
+    background: rgb(211, 42, 156);
     -webkit-transition:all 0.2s ease;
     transition: all 0.2s ease;
     /*box-shadow:  0 0 3px 5px rgba(255, 255, 255, 0.3);*/
@@ -195,7 +195,9 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
 }
 
 .buttonWhite:hover {
-    background: rgba(224, 224, 224, 0.88);
+    /*background: rgba(224, 224, 224, 0.88);*/
+    background: rgb(211, 42, 156);
+    color: white;
 }
 
 .buttonOrange {
