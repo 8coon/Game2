@@ -13,6 +13,7 @@ import {JSWorksLib} from "jsworks/dist/dts/jsworks";
 import {SimpleVirtualDOMElement} from "jsworks/dist/dts/VirtualDOM/SimpleVirtualDOM/SimpleVirtualDOMElement";
 import {MenuState} from "../States/MenuState";
 import {GUIFlashingAnimation} from "../Utils/GUIFlashingAnimation";
+import {UserModel} from "../../models/UserModel";
 
 
 declare const JSWorks: JSWorksLib;
@@ -56,6 +57,7 @@ export class RealmClass {
     private exitBtn: HTMLElement = <HTMLElement> this.pauseMenu.querySelector('#pause-menu__exit');
 
     private gameOver: HTMLElement = <HTMLElement> document.querySelector('#gameover');
+    private scoreSave: HTMLElement = <HTMLElement> this.gameOver.querySelector('#gameover__save-btn');
     private scoreResult: HTMLElement = <HTMLElement> this.gameOver.querySelector('#gameover__score');
 
     private running: boolean = true;
@@ -239,7 +241,16 @@ export class RealmClass {
         document.querySelector('#gameover__combo').innerHTML =
                 String((<OfflineGameState> this.state).longestCombo);
 
+
+
         window.setTimeout(() => {
+            (<UserModel>JSWorks.applicationContext.modelHolder.getModel('UserModel'))
+                .current()
+                .then((user: UserModel) => {
+                    if (user.login === undefined || user.login === null) {
+                        this.scoreSave.style.display = 'none';
+                    }
+                });
             this.toggleGameOver(true);
         }, 1000);
     }
