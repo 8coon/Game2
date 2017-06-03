@@ -1,4 +1,8 @@
 import BABYLON from "../../static/babylon";
+import {RealmClass} from "../Realm/Realm";
+
+
+declare const Realm: RealmClass;
 
 
 export class Loader {

@@ -26,43 +26,12 @@ export class HumanPilot extends Pilot {
 
 
     public grabShip(): void {
-        this.canControl = true;
         Realm.camera.follow(this.ship);
-        this.ship.speed = this.ship.maxSpeed;
+        this.ship.canMove = false;
+    }
 
-        /*Promise.resolve().then(() => {
-            this.ship.position = new BABYLON.Vector3(5, 0, 0);
-            this.ship.setImmediateAim(new BABYLON.Vector3(-10, -1, 0));
-            this.ship.speed = this.ship.maxSpeed;
-
-            return this.ship.atAim();
-        }).then(() => {
-            this.canControl = true;
-            Realm.camera.follow(this.ship);
-        });*/
-
-        //this.canControl = false;
-
-        /*Promise.resolve().then(() => {
-            this.ship.position = new BABYLON.Vector3(5, -4, -3);
-            this.ship.setImmediateAim(new BABYLON.Vector3(-2, 0, 0.8));
-
-            this.ship.speed = this.ship.maxSpeed;
-
-            return this.ship.atAim();
-        }).then(() => {
-            this.ship.aim = new BABYLON.Vector3(-7, -0.5, 0);
-
-            return this.ship.atAim();
-        }).then(() => {
-            this.ship.aim = new BABYLON.Vector3(-12, 0.5, 0);
-            Realm.camera.follow(this.ship);
-
-            return this.ship.atAim();
-        }).then(() => {
-            this.ship.aim = new BABYLON.Vector3(-20, 0, 0);
-            this.canControl = true;
-        })*/
+    public toggleControl(value: boolean): void {
+        this.canControl = value;
     }
 
 
@@ -82,9 +51,13 @@ export class HumanPilot extends Pilot {
             (<any> event).mozMovementY ||
             (<any> event).webkitMovementY || 0;
 
-        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 2.0, this.movementLag);
-        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 5.0, this.movementLag);
-        this.ship.setRoll(movX * 0.2);
+        const movSpeed = this.ship.speed / this.ship.maxSpeed;
+
+        this.movementX = Realm.calculateLag(this.movementX, this.movementX + movX * 2.0 * movSpeed,
+                this.movementLag);
+        this.movementY = Realm.calculateLag(this.movementY, this.movementY + movY * 4.0 * movSpeed,
+            this.movementLag);
+        this.ship.setRoll(movX * 0.2 * movSpeed);
     }
 
 

@@ -73,7 +73,7 @@ export class MainTrafficLine extends TrafficLine implements IObject{
 
 
     public getLastSection(): MainTrafficSection {
-        return this.sections[this.sectionCount - 1];
+        return this.sections[this.sections.length - 1];
     }
 
 
