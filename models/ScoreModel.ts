@@ -6,18 +6,26 @@ import {IQuery} from "../helpers/QueryBuilder";
 declare const JSWorks: JSWorksLib;
 
 export interface ScoreModelFields {
-    user_login: number;
-    name: string;
+    login: string;
+    score: number;
+    kills: number;
+    max_combo: number;
 }
 
 @JSWorks.Model
 export class ScoreModel implements IModel, ScoreModelFields {
+    @JSWorks.ModelField
+    login: string;
 
     @JSWorks.ModelField
-    user_login: number;
+    score: number;
 
     @JSWorks.ModelField
-    name: string;
+    kills: number;
+
+    @JSWorks.ModelField
+    max_combo: number;
+
 
     public total: number = 0;
 
@@ -39,6 +47,25 @@ export class ScoreModel implements IModel, ScoreModelFields {
                 });
 
                 resolve(models);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    @JSWorks.ModelCreateMethod
+    public create(): Promise<any> {
+        console.dir(this);
+        console.log(this.login);
+        return new Promise<any>((resolve, reject) => {
+            (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] +
+                `/scores/create`,
+                JSWorks.HTTPMethod.POST,
+                JSON.stringify((<IModel> this).gist()),
+                { 'Content-Type': 'application/json' },
+            ).then((data) => {
+                console.log(data);
+                resolve(data);
             }).catch((err) => {
                 reject(err);
             });
