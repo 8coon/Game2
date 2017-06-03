@@ -29,6 +29,28 @@ export class ScoresController extends AbstractController {
 
         const element: ComponentElement = <ComponentElement> this.view.DOMRoot.querySelector(`#table`);
         this.table = element.component;
+        this.table.title = 'Таблица лидеров';
+
+        (<any> this.table.columns).setValues([
+            {
+                name: 'login',
+                title: 'ЛОГИН',
+                width: 0.5,
+                order: 'ASC',
+            },
+            {
+                name: 'score',
+                title: 'СЧЁТ',
+            },
+            {
+                name: 'kills',
+                title: 'СБИТО',
+            },
+            {
+                name: 'max_combo',
+                title: 'КОМБО',
+            },
+        ]);
 
 
         this.table.controller.onQuery = (table: TableComponent) => {
@@ -46,6 +68,8 @@ export class ScoresController extends AbstractController {
                 table.error = err;
             });
         };
+
+        this.table.controller.onQuery(this.table);
     }
 }
 
