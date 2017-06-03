@@ -22,6 +22,7 @@ export class ScoreModel implements IModel, ScoreModelFields {
     public total: number = 0;
 
 
+    @JSWorks.ModelQueryMethod
     public query(params: IQuery): Promise<ScoreModel[]> {
         return new Promise<ScoreModel[]>((resolve, reject) => {
             (<IModel> this).jsonParser.parseURLAsync(JSWorks.config['backendURL'] +

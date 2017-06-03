@@ -6,6 +6,7 @@ import {ComponentElement} from "jsworks/dist/dts/CustomElements/ViewElements/Com
 import {View} from "jsworks/dist/dts/View/View";
 import {IQuery, QueryBuilder} from "../../helpers/QueryBuilder";
 import {IModel} from "jsworks/dist/dts/Model/IModel";
+import {ScoreModel} from "../../models/ScoreModel";
 
 
 declare const JSWorks: JSWorksLib;
@@ -19,7 +20,7 @@ export class ScoresController extends AbstractController {
     public component;
 
     public query(query: IQuery): Promise<any> {
-        return (<IModel> JSWorks.applicationContext.modelHolder.getModel('ScoreModel')).query(query);
+        return (<ScoreModel> JSWorks.applicationContext.modelHolder.getModel('ScoreModel')).query(query);
     }
 
 
