@@ -130,16 +130,32 @@ export class RealmClass {
         });
 
 
-        document.querySelector('#gameover__exit').addEventListener('click', () => {
+        document.querySelector('#gameover__exit').addEventListener('click', (event) => {
             event.stopPropagation();
             this.dropPointerLock();
             document.location.href = '/';
         });
 
-        document.querySelector('#gameover__save-btn').addEventListener('click', () => {
-            event.stopPropagation();
-            this.dropPointerLock();
-            document.location.href = '/';
+        document.querySelector('#gameover__save-btn').addEventListener('click', (event) => {
+            const creationData = {
+                'score': Math.floor((<OfflineGameState> this.state).score),
+                'kills': Math.floor((<OfflineGameState> this.state).kills),
+                'max_combo': Math.floor((<OfflineGameState> this.state).longestCombo)
+            };
+
+            JSWorks.applicationContext.modelHolder
+                .getModel('ScoreModel')
+                .from(creationData)
+                .create().then(rs => {
+                    console.log("Info: score saved", rs);
+                    event.stopPropagation();
+                    this.dropPointerLock();
+                    window.setTimeout(() => {
+                        document.location.href = '/';
+                    },20);
+                });
+
+
         });
 
 
