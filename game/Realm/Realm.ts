@@ -60,6 +60,9 @@ export class RealmClass {
 
     private running: boolean = true;
     public menuPlaying: boolean = true;
+    public dyingFlashing: boolean = false;
+    public isDying: boolean = false;
+    public loaded: boolean = false;
 
 
     public static now(): number {
@@ -124,15 +127,19 @@ export class RealmClass {
             event.stopPropagation();
             this.dropPointerLock();
             document.location.href = '/';
+        });
 
-            /*JSWorks.applicationContext.router.navigate(
-                JSWorks.applicationContext.routeHolder.getRoute('MenuRoute'),
-                {}
-            );
 
-            this.changeState('menu');
-            this.togglePauseMenu(false);*/
-            //this.dropPointerLock();
+        document.querySelector('#gameover__exit').addEventListener('click', () => {
+            event.stopPropagation();
+            this.dropPointerLock();
+            document.location.href = '/';
+        });
+
+        document.querySelector('#gameover__save-btn').addEventListener('click', () => {
+            event.stopPropagation();
+            this.dropPointerLock();
+            document.location.href = '/';
         });
 
 
@@ -159,6 +166,66 @@ export class RealmClass {
             this.pauseMenu.style.display = 'none';
             this.running = true;
         }
+    }
+
+
+    public flashDyingSoon(): void {
+        const lastDyingFlashing: boolean = this.dyingFlashing;
+        this.dyingFlashing = true;
+        this.isDying = true;
+
+        if (!lastDyingFlashing) {
+            this.toggleCountdown(true, 'Вернитесь на дорогу!');
+
+            this.flashCountdown().then(() => {
+                if (!this.dyingFlashing) {
+                    this.toggleCountdown(false, '');
+                    return;
+                }
+
+                this.flashCountdown().then(() => {
+                    if (!this.dyingFlashing) {
+                        this.toggleCountdown(false, '');
+                        return;
+                    }
+
+                    this.flashCountdown().then(() => {
+                        this.dieImmediately();
+                    });
+                });
+            });
+        }
+    }
+
+
+    public doNotDie(): void {
+        this.dyingFlashing = false;
+
+        if (this.isDying) {
+            this.toggleCountdown(false, '');
+        }
+    }
+
+
+    public dieImmediately(): void {
+        this.toggleCountdown(false, '');
+        this.dropPointerLock();
+        (<OfflineGameState> this.state).getLeadingPlayer().canMove = false;
+        (<OfflineGameState> this.state).getLeadingPlayer().setEnabled(false);
+        (<OfflineGameState> this.state).explodeAt(
+            (<OfflineGameState> this.state).getLeadingPlayer().position
+        );
+
+        document.querySelector('#gameover__score').innerHTML =
+                String(Math.floor((<OfflineGameState> this.state).score));
+        document.querySelector('#gameover__kills').innerHTML =
+                String((<OfflineGameState> this.state).kills);
+        document.querySelector('#gameover__combo').innerHTML =
+                String((<OfflineGameState> this.state).longestCombo);
+
+        window.setTimeout(() => {
+            this.toggleGameOver(true);
+        }, 1000);
     }
 
 
@@ -203,6 +270,7 @@ export class RealmClass {
                 this.initFX();
 
                 (<HTMLElement> document.querySelector('.base-container')).style.visibility = 'visible';
+                this.loaded = true;
                 let oldMillis: number = RealmClass.now();
 
                 this.engine.runRenderLoop(() => {
@@ -258,15 +326,19 @@ export class RealmClass {
     public toggleLoading(value: boolean, text: string = 'Загрузка... пожалуйста, подождите.'): void {
         const loader: SimpleVirtualDOMElement = JSWorks.applicationContext.currentPage['view'].DOMRoot
                 .querySelector('.loader-container');
-        const content: HTMLElement = <HTMLElement> document.querySelector('.game-content');
-
-        content.classList.toggle('blurred', value);
+        this.toggleBlur(value);
         loader.toggleClass('hidden', !value);
         loader.querySelector('.loader-text').innerHTML = text;
     }
 
 
-    public toogleGameOver(value: boolean): void {
+    public toggleBlur(value: boolean): void {
+        const content: HTMLElement = <HTMLElement> document.querySelector('.game-content');
+        content.classList.toggle('blurred', value);
+    }
+
+
+    public toggleGameOver(value: boolean): void {
         this.gameOver.style.display = (value) ? 'flex' : 'none';
     }
 

@@ -33,6 +33,8 @@ export abstract class AbstractController {
             Realm.init();
         } else {
             Realm.changeState('menu');
+            (<any> this).view.DOMRoot.querySelector('.base-container').setStyleAttribute(
+                    'visibility', 'visible');
         }
 
         if (!this.isGame || this.pointerLockSet) {

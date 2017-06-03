@@ -23,10 +23,11 @@ export class OfflineGameState extends RealmState {
     public ships: StarShip[] = [];
     public HUD: HTMLElement;
 
-    private score: number = 0;
+    public score: number = 0;
     private lastPlayerXPos: number = 0;
     private comboCount: number = 0;
     public kills: number = 0;
+    public longestCombo: number = 0;
 
 
     constructor(name: string, scene: BABYLON.Scene) {
@@ -67,6 +68,10 @@ export class OfflineGameState extends RealmState {
 
         if (combo === 0) {
             return;
+        }
+
+        if (combo > this.longestCombo) {
+            this.longestCombo = combo;
         }
 
         Realm.flashCombo().then(() => {

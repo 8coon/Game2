@@ -172,6 +172,17 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
         } else {
             ship.aimYLimit = undefined;
         }
+
+        if (ship.canMove && !ship.isAI && ship.position.y < section.position.y) {
+            Realm.dieImmediately();
+            return;
+        }
+
+        if (ship.canMove && ship.speed < ship.maxSpeed * 0.4) {
+            Realm.flashDyingSoon();
+        } else {
+            Realm.doNotDie();
+        }
     }
 
 

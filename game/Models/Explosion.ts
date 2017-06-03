@@ -20,7 +20,7 @@ export class Explosion extends BABYLON.Mesh implements IObject {
         this.sphere = BABYLON.Mesh.CreateSphere(
             'explosion',
             100,
-            30,
+            7,
             scene,
         );
 
@@ -52,7 +52,9 @@ export class Explosion extends BABYLON.Mesh implements IObject {
 
         this.currentFrame++;
         this.sphere.material.alpha = (this.currentFrame / this.animationTime);
-        this.sphere.scaling.scaleInPlace(1 + (this.currentFrame / this.animationTime) * 0.05);
+
+        const scale: number = 1 + (this.currentFrame / this.animationTime) * 1.1;
+        this.sphere.scaling = new BABYLON.Vector3(scale, scale, scale);
 
         if (this.animationEnd()) {
             Realm.objects.free('explosion', this);

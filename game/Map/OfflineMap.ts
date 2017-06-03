@@ -181,7 +181,7 @@ export class OfflineMap extends BABYLON.Mesh implements IObject {
         const sectionIndex: number = Math.floor(xDistCf * length) - (index % 2) * 3 - 3;
         const position: BABYLON.Vector3 = this.mainTrafficLine.sections[sectionIndex].position;
 
-        line.position = position.subtract(new BABYLON.Vector3(0, -20, 0.5 * 145.455));
+        line.position = position.subtract(new BABYLON.Vector3(0, -80, 0.5 * 145.455));
         line.direction = index % 2 === 0 ? 1 : -1;
         line.reposition();
 
