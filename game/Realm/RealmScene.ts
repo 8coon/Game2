@@ -39,11 +39,11 @@ export class RealmScene extends BABYLON.Scene {
             this.engineSound.setVolume(0.0);
         };
 
-        task = this.loader.addBinaryFileTask('menu task', '/static/music/menu.ogg');
+        task = this.loader.addBinaryFileTask('menu task', '/static/music/menu2.ogg');
         task.onSuccess = (task) => {
             this.menuMusic = new BABYLON.Sound('menu', task.data, this, null,
                 { loop: true, autoplay: false });
-            this.menuMusic.setVolume(1.0);
+            this.menuMusic.setVolume(0.1);
         };
 
         task = this.loader.addBinaryFileTask('game task', '/static/music/game.ogg');

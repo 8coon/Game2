@@ -40,6 +40,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
     private lastArcAngle: number;
     private NPCDelayMax: number = 120;
     private NPCDelay: number = this.NPCDelayMax;
+    private framesPassed: number = 0;
 
 
     constructor(name: string, scene: BABYLON.Scene, parent: OfflineMap, random: Random,
@@ -173,7 +174,7 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
             ship.aimYLimit = undefined;
         }
 
-        if (ship.canMove && !ship.isAI && ship.position.y < section.position.y) {
+        if (ship.canMove && !ship.isAI && this.framesPassed > 60 && ship.position.y < section.position.y) {
             Realm.dieImmediately();
             return;
         }
@@ -188,6 +189,8 @@ export class TrafficLine extends BABYLON.Mesh implements IObject {
 
 
     public onRender(): void {
+        this.framesPassed++;
+
         this.shipsConnected.forEach((ship: StarShip, index: number) => {
             const section: TrafficSection = this.findSection(ship);
             const aim: BABYLON.Vector3 = section.position.add(new BABYLON.Vector3(0, 5, 0));
